@@ -2,7 +2,8 @@
 
 ## 기본 원칙
 
-- 페이지는 `App.vue`에서 큰 레이아웃만 조립하고, 실제 UI 단위는 `src/components` 아래의 작은 컴포넌트로 분리한다.
+- `App.vue`는 현재 경로에 맞는 페이지 컴포넌트만 선택한다. 실제 화면 구성과 상태 관리는 `src/pages` 아래의 페이지 컴포넌트가 담당한다.
+- 실제 UI 단위는 `src/components` 아래의 작은 컴포넌트로 분리한다.
 - 컴포넌트 하나는 한 가지 책임만 가진다. 예를 들어 히어로, 링크 카드, 섹션 리스트처럼 사용자가 인식하는 UI 단위를 기준으로 나눈다.
 - 같은 마크업 패턴이 2번 이상 반복되면 props 기반 컴포넌트로 추출한다.
 - 컴포넌트 이름은 PascalCase를 사용하고, 파일 이름도 컴포넌트 이름과 동일하게 유지한다.
@@ -22,10 +23,40 @@
 
 ## 파일 배치
 
-- 페이지 전체 조립: `src/App.vue`
-- 재사용 UI 컴포넌트: `src/components/*.vue`
+- 앱 진입 및 페이지 선택: `src/App.vue`
+- 페이지 단위 화면: `src/pages/*.vue`
+- 인트로 전용 UI 컴포넌트: `src/components/intro/*.vue`
+- 애니메이션/표시용 데이터: `src/data/*.ts`
+- 공유 타입: `src/types/*.ts`
+- UI와 분리 가능한 순수 로직: `src/utils/*.ts`
 - 정적 이미지/아이콘 import: `src/assets`
 - 전역 CSS와 Tailwind import: `src/style.css`
+
+## 현재 폴더 구조
+
+```text
+src/
+├─ App.vue
+├─ main.ts
+├─ style.css
+├─ pages/
+│  ├─ IntroPage.vue
+│  └─ MainPage.vue
+├─ components/
+│  └─ intro/
+│     ├─ IntroBackground.vue
+│     ├─ IntroHeader.vue
+│     ├─ PromptInput.vue
+│     ├─ CodingTerminal.vue
+│     ├─ CodingStatus.vue
+│     └─ CompletionCTA.vue
+├─ data/
+│  └─ codingSequences.ts
+├─ types/
+│  └─ intro.ts
+└─ utils/
+   └─ codeHighlighter.ts
+```
 
 ## 체크리스트
 

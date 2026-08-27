@@ -1,7 +1,6 @@
 @import 'tailwindcss';
 
 :root {
-  color-scheme: light dark;
   font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
   font-synthesis: none;
   line-height: 1.45;
@@ -17,39 +16,4 @@ body {
 
 #app {
   min-height: 100svh;
-}
-
-@layer components {
-  .ticks {
-    position: relative;
-    width: 100%;
-  }
-
-  .ticks::before,
-  .ticks::after {
-    content: '';
-    position: absolute;
-    top: -4.5px;
-    border: 5px solid transparent;
-  }
-
-  .ticks::before {
-    left: 0;
-    border-left-color: rgb(226 232 240);
-  }
-
-  .ticks::after {
-    right: 0;
-    border-right-color: rgb(226 232 240);
-  }
-
-  @media (prefers-color-scheme: dark) {
-    .ticks::before {
-      border-left-color: rgb(51 65 85);
-    }
-
-    .ticks::after {
-      border-right-color: rgb(51 65 85);
-    }
-  }
 }
