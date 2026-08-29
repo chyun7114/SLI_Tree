@@ -31,7 +31,7 @@ watch(
 </script>
 
 <template>
-  <section class="mx-auto grid w-full max-w-5xl gap-4 md:grid-cols-[1fr_auto] md:items-start">
+  <section class="mx-auto flex w-full max-w-5xl flex-col gap-4">
     <div class="overflow-hidden rounded-2xl border border-slate-800/90 bg-[#101827] shadow-2xl shadow-sky-300/30">
       <div class="flex items-center justify-between border-b border-white/10 bg-[#172033] px-4 py-3">
         <div class="flex min-w-0 items-center gap-2">

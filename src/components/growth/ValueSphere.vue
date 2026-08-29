@@ -45,7 +45,6 @@ const labelSize = computed(() => {
   >
     <span class="value-sphere__surface"></span>
     <span class="value-sphere__label">{{ value.title }}</span>
-    <span v-if="state === 'completed'" class="value-sphere__echo">{{ value.title }}</span>
   </button>
 </template>
 
@@ -173,16 +172,6 @@ const labelSize = computed(() => {
 .value-sphere--completed .value-sphere__surface,
 .value-sphere--completed .value-sphere__label {
   opacity: 0;
-}
-
-.value-sphere__echo {
-  position: absolute;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  color: rgba(209, 233, 226, 0.55);
-  font-size: clamp(0.82rem, 1.1vw, 1rem);
-  font-weight: 400;
 }
 
 @keyframes sphere-breathe {

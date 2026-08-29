@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import AmbientDroplets from './AmbientDroplets.vue'
-import CompletionMessage from './CompletionMessage.vue'
 import GrowingTree from './GrowingTree.vue'
 import MemoryModal from './MemoryModal.vue'
 import ValueSphere from './ValueSphere.vue'
@@ -41,7 +40,6 @@ const {
 
     <GrowingTree :stage="treeStage" :growth-key="growthKey" />
     <WaterBurst :origin="burstOrigin" :absorb-key="absorbKey" />
-    <CompletionMessage v-if="isComplete" />
 
     <Transition name="memory-modal">
       <MemoryModal v-if="isModalOpen && activeMemory" :memory="activeMemory" @close="closeMemory" />

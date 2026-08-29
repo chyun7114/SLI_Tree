@@ -9,7 +9,7 @@ defineProps<Props>()
 </script>
 
 <template>
-  <aside class="flex flex-col gap-3 rounded-2xl border border-white/70 bg-white/65 p-4 text-sm text-slate-700 shadow-xl shadow-sky-200/30 backdrop-blur-xl md:min-w-64">
+  <aside class="flex w-full flex-col gap-3 rounded-2xl border border-white/70 bg-white/65 p-4 text-sm text-slate-700 shadow-xl shadow-sky-200/30 backdrop-blur-xl">
     <Transition name="status-slide" mode="out-in">
       <div :key="message" class="flex items-center gap-3">
         <span

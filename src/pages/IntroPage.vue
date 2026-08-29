@@ -22,6 +22,7 @@ const progress = ref(0)
 const timers: number[] = []
 
 const isPromptCompact = computed(() => stage.value === 'coding' || stage.value === 'completed' || stage.value === 'transition')
+const isPromptVisible = computed(() => stage.value === 'idle' || stage.value === 'typing' || stage.value === 'ready')
 const isTerminalVisible = computed(() => stage.value === 'coding' || stage.value === 'completed' || stage.value === 'transition')
 const isCompleted = computed(() => stage.value === 'completed' || stage.value === 'transition')
 
@@ -116,18 +117,21 @@ onBeforeUnmount(clearTimers)
 
     <div
       class="relative z-10 flex min-h-svh flex-col px-5 py-8 transition duration-700 md:px-8"
-      :class="isPromptCompact ? 'justify-start gap-6' : 'justify-center gap-10'"
+      :class="isPromptCompact ? 'justify-center gap-6' : 'justify-center gap-10'"
     >
-      <section
-        class="mx-auto w-full max-w-4xl text-center transition-all duration-700 ease-out"
-        :class="isPromptCompact ? 'pt-2 md:pt-5' : '-translate-y-4'"
-      >
-        <Transition name="fade-soft">
-          <IntroHeader v-if="!isPromptCompact" />
-        </Transition>
+      <Transition name="prompt-collapse">
+        <section
+          v-if="isPromptVisible"
+          class="mx-auto w-full max-w-6xl text-center transition-all duration-700 ease-out"
+          :class="isPromptCompact ? 'pt-2 md:pt-5' : '-translate-y-4'"
+        >
+          <Transition name="fade-soft">
+            <IntroHeader v-if="!isPromptCompact" />
+          </Transition>
 
-        <PromptInput :model-value="typedPrompt" :stage="stage" @start-typing="startPromptTyping" @submit="startCoding" />
-      </section>
+          <PromptInput :model-value="typedPrompt" :stage="stage" @start-typing="startPromptTyping" @submit="startCoding" />
+        </section>
+      </Transition>
 
       <Transition name="terminal-rise">
         <CodingTerminal
@@ -158,6 +162,8 @@ onBeforeUnmount(clearTimers)
 .fade-soft-leave-active,
 .completion-fade-enter-active,
 .completion-fade-leave-active,
+.prompt-collapse-enter-active,
+.prompt-collapse-leave-active,
 .terminal-rise-enter-active,
 .terminal-rise-leave-active {
   transition:
@@ -181,5 +187,10 @@ onBeforeUnmount(clearTimers)
 .completion-fade-leave-to {
   opacity: 0;
   transform: translateY(16px);
+}
+
+.prompt-collapse-leave-to {
+  opacity: 0;
+  transform: translateY(-28px) scale(0.98);
 }
 </style>
