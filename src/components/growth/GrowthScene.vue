@@ -1,10 +1,8 @@
 <script setup lang="ts">
-import { computed } from 'vue'
 import AmbientDroplets from './AmbientDroplets.vue'
 import CompletionMessage from './CompletionMessage.vue'
 import GrowingTree from './GrowingTree.vue'
 import MemoryModal from './MemoryModal.vue'
-import SoilGround from './SoilGround.vue'
 import ValueSphere from './ValueSphere.vue'
 import WaterBurst from './WaterBurst.vue'
 import { useGrowthSequence } from '../../composables/useGrowthSequence'
@@ -23,8 +21,6 @@ const {
   treeStage,
   valueStates,
 } = useGrowthSequence(growthValues)
-
-const moistureLevel = computed(() => treeStage.value)
 </script>
 
 <template>
@@ -44,7 +40,6 @@ const moistureLevel = computed(() => treeStage.value)
     </section>
 
     <GrowingTree :stage="treeStage" :growth-key="growthKey" />
-    <SoilGround :moisture-level="moistureLevel" />
     <WaterBurst :origin="burstOrigin" :absorb-key="absorbKey" />
     <CompletionMessage v-if="isComplete" />
 
@@ -59,11 +54,10 @@ const moistureLevel = computed(() => treeStage.value)
   position: relative;
   min-height: 100svh;
   overflow: hidden;
-  color: #eef7f4;
+  color: #17313b;
   background:
-    radial-gradient(circle at 50% 38%, rgba(146, 201, 183, 0.18), transparent 28%),
-    radial-gradient(circle at 18% 14%, rgba(218, 232, 207, 0.16), transparent 24%),
-    linear-gradient(180deg, #102323 0%, #213630 42%, #41583d 74%, #5e6a42 100%);
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 248, 220, 0.06)),
+    url('/images/배경.png') center bottom / cover no-repeat;
   isolation: isolate;
   transition:
     filter 1200ms ease,
@@ -79,9 +73,9 @@ const moistureLevel = computed(() => treeStage.value)
   inset: 0;
   z-index: 1;
   background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.1), transparent 34%),
-    radial-gradient(ellipse at 50% 100%, rgba(16, 19, 13, 0.38), transparent 48%),
-    linear-gradient(90deg, rgba(2, 8, 10, 0.26), transparent 26% 74%, rgba(2, 8, 10, 0.24));
+    linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 38%),
+    radial-gradient(ellipse at 50% 100%, rgba(104, 79, 44, 0.1), transparent 42%),
+    linear-gradient(90deg, rgba(38, 115, 168, 0.08), transparent 28% 72%, rgba(38, 115, 168, 0.08));
   pointer-events: none;
 }
 
@@ -90,11 +84,11 @@ const moistureLevel = computed(() => treeStage.value)
   inset: 0;
   content: '';
   background-image:
-    linear-gradient(rgba(255, 255, 255, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.025) 1px, transparent 1px);
+    linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.06) 1px, transparent 1px);
   background-size: 72px 72px;
   mask-image: radial-gradient(circle at 50% 24%, black, transparent 68%);
-  opacity: 0.34;
+  opacity: 0.16;
 }
 
 .growth-scene--complete .growth-scene__atmosphere::after {

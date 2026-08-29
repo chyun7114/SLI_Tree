@@ -6,11 +6,18 @@ const props = defineProps<{
   growthKey: number
 }>()
 
-const treeSrc = computed(() => `/images/tree/stages/stage-${Math.min(props.stage, 4)}.png`)
+const visibleStage = computed(() => Math.min(Math.max(props.stage, 0), 4))
+const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${visibleStage.value}단계.png` : ''))
 </script>
 
 <template>
-  <div :key="growthKey" class="growing-tree" :class="[`growing-tree--stage-${stage}`]" aria-label="Growing tree">
+  <div
+    v-if="visibleStage > 0"
+    :key="growthKey"
+    class="growing-tree"
+    :class="[`growing-tree--stage-${visibleStage}`]"
+    aria-label="Growing tree"
+  >
     <div class="growing-tree__shadow"></div>
     <img
       class="growing-tree__image"
@@ -36,29 +43,24 @@ const treeSrc = computed(() => `/images/tree/stages/stage-${Math.min(props.stage
   animation: tree-arrival 960ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
 }
 
-.growing-tree--stage-0 {
-  --tree-width: clamp(72px, 8vw, 110px);
-  --tree-height: clamp(112px, 14vh, 174px);
-}
-
 .growing-tree--stage-1 {
-  --tree-width: clamp(104px, 11vw, 158px);
-  --tree-height: clamp(166px, 19vh, 250px);
+  --tree-width: clamp(128px, 15vw, 210px);
+  --tree-height: clamp(160px, 22vh, 286px);
 }
 
 .growing-tree--stage-2 {
-  --tree-width: clamp(150px, 16vw, 230px);
-  --tree-height: clamp(240px, 28vh, 386px);
+  --tree-width: clamp(182px, 22vw, 320px);
+  --tree-height: clamp(220px, 31vh, 410px);
 }
 
 .growing-tree--stage-3 {
-  --tree-width: clamp(228px, 24vw, 360px);
-  --tree-height: clamp(320px, 40vh, 520px);
+  --tree-width: clamp(260px, 31vw, 460px);
+  --tree-height: clamp(310px, 43vh, 580px);
 }
 
 .growing-tree--stage-4 {
-  --tree-width: clamp(340px, 36vw, 560px);
-  --tree-height: clamp(390px, 52vh, 700px);
+  --tree-width: clamp(350px, 40vw, 640px);
+  --tree-height: clamp(410px, 57vh, 760px);
 }
 
 .growing-tree__shadow {
