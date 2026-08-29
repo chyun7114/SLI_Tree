@@ -102,13 +102,35 @@ const {
 .growth-scene__values {
   position: relative;
   z-index: 5;
-  display: grid;
-  grid-template-columns: repeat(2, minmax(112px, 176px));
-  justify-content: center;
-  gap: clamp(22px, 5vw, 58px) clamp(48px, 12vw, 150px);
   width: min(760px, calc(100vw - 36px));
-  margin: 0 auto;
-  padding-top: clamp(54px, 8vh, 86px);
+  height: clamp(330px, 46vh, 460px);
+  margin: clamp(125px, 23.75vh, 205px) auto 0;
+  transform-origin: 50% 48%;
+  animation: value-group-drift 18s ease-in-out infinite;
+}
+
+.growth-scene__values :deep(.value-sphere) {
+  position: absolute;
+}
+
+.growth-scene__values :deep(.value-sphere:nth-child(1)) {
+  left: 19%;
+  top: 2%;
+}
+
+.growth-scene__values :deep(.value-sphere:nth-child(2)) {
+  right: 16%;
+  top: 10%;
+}
+
+.growth-scene__values :deep(.value-sphere:nth-child(3)) {
+  left: 9%;
+  bottom: 4%;
+}
+
+.growth-scene__values :deep(.value-sphere:nth-child(4)) {
+  right: 6%;
+  bottom: 16%;
 }
 
 .memory-modal-enter-active,
@@ -130,11 +152,50 @@ const {
   }
 }
 
+@keyframes value-group-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) rotate(-1.8deg) scale(1);
+  }
+  36% {
+    transform: translate3d(10px, -6px, 0) rotate(2.4deg) scale(1.006);
+  }
+  70% {
+    transform: translate3d(-8px, 7px, 0) rotate(-2.2deg) scale(0.998);
+  }
+}
+
 @media (max-width: 760px) {
   .growth-scene__values {
-    grid-template-columns: repeat(2, minmax(92px, 132px));
-    gap: clamp(12px, 4vw, 24px) clamp(22px, 8vw, 48px);
-    padding-top: clamp(38px, 7vh, 66px);
+    width: min(430px, calc(100vw - 24px));
+    height: clamp(300px, 44vh, 390px);
+    margin-top: clamp(104px, 19.5vh, 154px);
+  }
+
+  .growth-scene__values :deep(.value-sphere:nth-child(1)) {
+    left: 15%;
+    top: 1%;
+  }
+
+  .growth-scene__values :deep(.value-sphere:nth-child(2)) {
+    right: 9%;
+    top: 12%;
+  }
+
+  .growth-scene__values :deep(.value-sphere:nth-child(3)) {
+    left: 4%;
+    bottom: 5%;
+  }
+
+  .growth-scene__values :deep(.value-sphere:nth-child(4)) {
+    right: 2%;
+    bottom: 15%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .growth-scene__values {
+    animation: none;
   }
 }
 </style>

@@ -30,8 +30,8 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
 
 <style scoped>
 .growing-tree {
-  --tree-width: clamp(118px, 13vw, 192px);
-  --tree-height: clamp(188px, 22vh, 318px);
+  --tree-width: clamp(130px, 14.3vw, 211px);
+  --tree-height: clamp(207px, 24.2vh, 350px);
   position: absolute;
   left: 50%;
   bottom: clamp(92px, 15vh, 162px);
@@ -44,23 +44,23 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
 }
 
 .growing-tree--stage-1 {
-  --tree-width: clamp(128px, 15vw, 210px);
-  --tree-height: clamp(160px, 22vh, 286px);
+  --tree-width: clamp(141px, 16.5vw, 231px);
+  --tree-height: clamp(176px, 24.2vh, 315px);
 }
 
 .growing-tree--stage-2 {
-  --tree-width: clamp(182px, 22vw, 320px);
-  --tree-height: clamp(220px, 31vh, 410px);
+  --tree-width: clamp(200px, 24.2vw, 352px);
+  --tree-height: clamp(242px, 34.1vh, 451px);
 }
 
 .growing-tree--stage-3 {
-  --tree-width: clamp(260px, 31vw, 460px);
-  --tree-height: clamp(310px, 43vh, 580px);
+  --tree-width: clamp(286px, 34.1vw, 506px);
+  --tree-height: clamp(341px, 47.3vh, 638px);
 }
 
 .growing-tree--stage-4 {
-  --tree-width: clamp(350px, 40vw, 640px);
-  --tree-height: clamp(410px, 57vh, 760px);
+  --tree-width: clamp(385px, 44vw, 704px);
+  --tree-height: clamp(451px, 62.7vh, 836px);
 }
 
 .growing-tree__shadow {
@@ -130,13 +130,13 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
   }
 
   .growing-tree--stage-4 {
-    --tree-width: clamp(250px, 86vw, 360px);
-    --tree-height: clamp(330px, 50vh, 490px);
+    --tree-width: clamp(275px, 94.6vw, 396px);
+    --tree-height: clamp(363px, 55vh, 539px);
   }
 
   .growing-tree--stage-3 {
-    --tree-width: clamp(192px, 68vw, 290px);
-    --tree-height: clamp(286px, 42vh, 410px);
+    --tree-width: clamp(211px, 74.8vw, 319px);
+    --tree-height: clamp(315px, 46.2vh, 451px);
   }
 }
 

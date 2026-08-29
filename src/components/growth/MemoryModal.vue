@@ -1,6 +1,25 @@
 <script setup lang="ts">
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
+import type { CSSProperties } from 'vue'
 import type { GrowthValue } from '../../types/growth'
+
+interface HeatmapTile {
+  index: number
+  photo: GrowthValue['photos'][number]
+  style: CSSProperties
+}
+
+interface HeatmapSource {
+  index: number
+  photo: GrowthValue['photos'][number]
+}
+
+interface HeatmapRect {
+  x: number
+  y: number
+  width: number
+  height: number
+}
 
 const props = defineProps<{
   memory: GrowthValue
@@ -11,18 +30,23 @@ const emit = defineEmits<{
 }>()
 
 const modalRef = ref<HTMLElement | null>(null)
-const activeIndex = ref(0)
 const erroredPhotos = ref<Set<string>>(new Set())
 
-const activePhoto = computed(() => props.memory.photos[activeIndex.value])
+const sliderPhotos = computed(() => [...props.memory.photos, ...props.memory.photos])
+const sliderTrackStyle = computed<CSSProperties>(() => ({
+  '--scroll-duration': `${Math.max(56, props.memory.photos.length * 2.9)}s`,
+}))
+const heatmapSources = computed(() => {
+  const availablePhotos = props.memory.photos
+    .map((photo, index) => ({ index, photo }))
+    .filter((item) => !erroredPhotos.value.has(item.photo.id))
+
+  return availablePhotos.length > 0 ? availablePhotos : props.memory.photos.map((photo, index) => ({ index, photo }))
+})
+const heatmapTiles = computed(() => createHeatmapTiles(heatmapSources.value))
 
 function close() {
   emit('close')
-}
-
-function goToPhoto(index: number) {
-  const total = props.memory.photos.length
-  activeIndex.value = (index + total) % total
 }
 
 function markPhotoError(id: string) {
@@ -33,19 +57,86 @@ function isPhotoErrored(id: string) {
   return erroredPhotos.value.has(id)
 }
 
+function heatmapWeight(index: number) {
+  const weights = [1.45, 0.92, 1.18, 1.72, 0.86, 1.32, 1.05, 1.56, 0.98, 1.24]
+  return weights[index % weights.length]
+}
+
+function createHeatmapTiles(sources: HeatmapSource[]) {
+  const weightedPhotos = sources.map((source, index) => ({
+    index: source.index,
+    photo: source.photo,
+    weight: heatmapWeight(index),
+  }))
+  const tiles: HeatmapTile[] = []
+
+  function split(items: typeof weightedPhotos, rect: HeatmapRect) {
+    if (items.length === 0) return
+
+    if (items.length === 1) {
+      const item = items[0]
+      tiles.push({
+        index: item.index,
+        photo: item.photo,
+        style: {
+          left: `${rect.x}%`,
+          top: `${rect.y}%`,
+          width: `${rect.width}%`,
+          height: `${rect.height}%`,
+        },
+      })
+      return
+    }
+
+    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0)
+    const targetWeight = totalWeight / 2
+    let splitIndex = 1
+    let runningWeight = 0
+    let closestDistance = Number.POSITIVE_INFINITY
+
+    for (let index = 0; index < items.length - 1; index += 1) {
+      runningWeight += items[index].weight
+      const distance = Math.abs(targetWeight - runningWeight)
+      if (distance < closestDistance) {
+        closestDistance = distance
+        splitIndex = index + 1
+      }
+    }
+
+    const firstGroup = items.slice(0, splitIndex)
+    const secondGroup = items.slice(splitIndex)
+    const firstWeight = firstGroup.reduce((sum, item) => sum + item.weight, 0)
+    const ratio = firstWeight / totalWeight
+
+    if (rect.width >= rect.height) {
+      const firstWidth = rect.width * ratio
+      split(firstGroup, { ...rect, width: firstWidth })
+      split(secondGroup, {
+        x: rect.x + firstWidth,
+        y: rect.y,
+        width: rect.width - firstWidth,
+        height: rect.height,
+      })
+      return
+    }
+
+    const firstHeight = rect.height * ratio
+    split(firstGroup, { ...rect, height: firstHeight })
+    split(secondGroup, {
+      x: rect.x,
+      y: rect.y + firstHeight,
+      width: rect.width,
+      height: rect.height - firstHeight,
+    })
+  }
+
+  split(weightedPhotos, { x: 0, y: 0, width: 100, height: 100 })
+  return tiles
+}
+
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
     close()
-    return
-  }
-
-  if (event.key === 'ArrowRight') {
-    goToPhoto(activeIndex.value + 1)
-    return
-  }
-
-  if (event.key === 'ArrowLeft') {
-    goToPhoto(activeIndex.value - 1)
     return
   }
 
@@ -70,7 +161,7 @@ function handleKeydown(event: KeyboardEvent) {
 watch(
   () => props.memory.id,
   () => {
-    activeIndex.value = 0
+    erroredPhotos.value = new Set()
     nextTick(() => modalRef.value?.focus())
   },
 )
@@ -90,53 +181,48 @@ onBeforeUnmount(() => {
     <section
       ref="modalRef"
       class="memory-modal"
+      :class="`memory-modal--${memory.modalVariant}`"
       role="dialog"
       aria-modal="true"
-      :aria-labelledby="`memory-title-${memory.id}`"
+      :aria-label="memory.archiveLabel"
       tabindex="-1"
     >
-      <button class="memory-modal__close" type="button" aria-label="Close memory archive" @click="close">
-        <span></span>
+      <button class="memory-modal__close" type="button" aria-label="사진 아카이브 닫기" @click="close">
+        <span class="material-symbols-rounded" aria-hidden="true">close</span>
       </button>
 
-      <div class="memory-modal__copy">
-        <p class="memory-modal__subtitle">{{ memory.subtitle }}</p>
-        <h2 :id="`memory-title-${memory.id}`">{{ memory.title }}</h2>
-        <p>{{ memory.description }}</p>
+      <div v-if="memory.modalVariant === 'heatmap'" class="memory-modal__heatmap" aria-label="사진 타일 아카이브">
+        <button
+          v-for="tile in heatmapTiles"
+          :key="tile.photo.id"
+          class="memory-modal__heat-tile"
+          :style="tile.style"
+          type="button"
+          :aria-label="`${tile.index + 1}번째 사진 보기`"
+        >
+          <img
+            v-if="!isPhotoErrored(tile.photo.id)"
+            :src="tile.photo.src"
+            :alt="tile.photo.alt"
+            @error="markPhotoError(tile.photo.id)"
+          />
+          <span v-else aria-hidden="true"></span>
+        </button>
       </div>
 
-      <div class="memory-modal__gallery">
-        <figure class="memory-modal__hero">
-          <img
-            v-if="activePhoto && !isPhotoErrored(activePhoto.id)"
-            :src="activePhoto.src"
-            :alt="activePhoto.alt"
-            @error="markPhotoError(activePhoto.id)"
-          />
-          <div v-else class="memory-modal__fallback" :data-value="memory.title">
-            <span>{{ memory.title }}</span>
-          </div>
-          <figcaption>{{ activePhoto?.caption }}</figcaption>
-        </figure>
-
-        <div class="memory-modal__controls" aria-label="Photo controls">
-          <button type="button" aria-label="Previous photo" @click="goToPhoto(activeIndex - 1)">‹</button>
-          <span>{{ activeIndex + 1 }} / {{ memory.photos.length }}</span>
-          <button type="button" aria-label="Next photo" @click="goToPhoto(activeIndex + 1)">›</button>
-        </div>
-
-        <div class="memory-modal__strip" aria-label="Photo thumbnails">
-          <button
-            v-for="(photo, index) in memory.photos"
-            :key="photo.id"
-            type="button"
-            :class="{ 'memory-modal__thumb--active': index === activeIndex }"
-            :aria-label="`Show photo ${index + 1}`"
-            @click="goToPhoto(index)"
+      <div v-else class="memory-modal__slider" aria-label="자동 슬라이드 사진 아카이브">
+        <div class="memory-modal__track" :style="sliderTrackStyle">
+          <figure
+            v-for="(photo, index) in sliderPhotos"
+            :key="`${photo.id}-${index}`"
+            class="memory-modal__slide"
+            :aria-hidden="index >= memory.photos.length"
           >
             <img v-if="!isPhotoErrored(photo.id)" :src="photo.src" :alt="photo.alt" @error="markPhotoError(photo.id)" />
-            <span v-else>{{ index + 1 }}</span>
-          </button>
+            <div v-else class="memory-modal__fallback">
+              <span aria-hidden="true"></span>
+            </div>
+          </figure>
         </div>
       </div>
     </section>
@@ -150,28 +236,34 @@ onBeforeUnmount(() => {
   z-index: 20;
   display: grid;
   place-items: center;
-  padding: clamp(16px, 4vw, 44px);
-  background: rgba(5, 13, 15, 0.72);
-  backdrop-filter: blur(14px);
+  padding: clamp(10px, 2vw, 24px);
+  background:
+    linear-gradient(180deg, rgba(233, 249, 255, 0.78), rgba(223, 247, 238, 0.7)),
+    rgba(216, 244, 248, 0.62);
+  backdrop-filter: blur(16px) saturate(1.15);
 }
 
 .memory-modal {
   position: relative;
-  display: grid;
-  grid-template-columns: minmax(220px, 0.62fr) minmax(360px, 1.38fr);
-  gap: clamp(22px, 4vw, 54px);
-  width: min(1180px, 92vw);
+  box-sizing: border-box;
+  display: block;
+  width: min(1480px, 97vw);
   max-height: 88svh;
   overflow: hidden;
-  border: 1px solid rgba(235, 250, 245, 0.16);
+  border: 1px solid rgba(255, 255, 255, 0.74);
   border-radius: 8px;
-  padding: clamp(22px, 4vw, 48px);
-  color: #eef7f3;
+  padding: clamp(14px, 1.8vw, 24px);
+  color: #1d5361;
   background:
-    linear-gradient(135deg, rgba(23, 42, 42, 0.92), rgba(9, 17, 19, 0.94)),
-    radial-gradient(circle at 76% 14%, rgba(120, 196, 176, 0.16), transparent 34%);
-  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.46);
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(229, 248, 251, 0.84)),
+    radial-gradient(circle at 76% 12%, rgba(141, 223, 232, 0.28), transparent 34%),
+    radial-gradient(circle at 16% 86%, rgba(199, 238, 204, 0.3), transparent 36%);
+  box-shadow: 0 30px 90px rgba(64, 128, 139, 0.22);
   outline: none;
+}
+
+.memory-modal--heatmap {
+  height: min(88svh, 760px);
 }
 
 .memory-modal__close {
@@ -183,170 +275,117 @@ onBeforeUnmount(() => {
   width: 42px;
   height: 42px;
   place-items: center;
-  border: 1px solid rgba(235, 250, 245, 0.18);
+  border: 1px solid rgba(117, 193, 207, 0.32);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.66);
+  box-shadow: 0 10px 24px rgba(94, 157, 169, 0.14);
   cursor: pointer;
 }
 
-.memory-modal__close span,
-.memory-modal__close span::after {
-  width: 17px;
-  height: 1px;
-  background: rgba(238, 247, 243, 0.9);
-  content: '';
-}
-
 .memory-modal__close span {
-  display: block;
-  transform: rotate(45deg);
+  color: rgba(28, 91, 105, 0.82);
+  font-size: 24px;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  line-height: 1;
 }
 
-.memory-modal__close span::after {
-  position: absolute;
-  transform: rotate(90deg);
-}
-
-.memory-modal__copy {
-  align-self: end;
-  padding-bottom: clamp(12px, 4vh, 42px);
-}
-
-.memory-modal__subtitle {
-  margin: 0 0 14px;
-  color: rgba(180, 224, 213, 0.76);
-  font-size: 0.78rem;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-}
-
-.memory-modal h2 {
-  margin: 0;
-  font-size: clamp(2.4rem, 6vw, 5.8rem);
-  font-weight: 500;
-  letter-spacing: 0;
-  line-height: 0.95;
-}
-
-.memory-modal__copy p:last-child {
-  max-width: 30rem;
-  margin: 24px 0 0;
-  color: rgba(238, 247, 243, 0.76);
-  font-size: clamp(0.95rem, 1.4vw, 1.08rem);
-  line-height: 1.8;
-}
-
-.memory-modal__gallery {
-  min-width: 0;
-}
-
-.memory-modal__hero {
+.memory-modal__heatmap {
   position: relative;
-  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  padding-right: 52px;
 }
 
-.memory-modal__hero img,
+.memory-modal__heat-tile {
+  position: absolute;
+  overflow: hidden;
+  min-height: 0;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.46);
+  box-shadow: 0 12px 26px rgba(75, 151, 164, 0.12);
+  cursor: pointer;
+  transition:
+    filter 180ms ease,
+    transform 180ms ease;
+}
+
+.memory-modal__heat-tile:hover {
+  z-index: 1;
+  filter: brightness(1.04) saturate(1.03);
+  transform: scale(1.006);
+}
+
+.memory-modal__heat-tile img,
+.memory-modal__heat-tile span,
+.memory-modal__slide img,
 .memory-modal__fallback {
   display: block;
   width: 100%;
-  max-height: min(58svh, 620px);
-  aspect-ratio: 16 / 10;
-  border-radius: 6px;
+  height: 100%;
   object-fit: cover;
-  background: #1b2927;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.28);
+  background: #d7f2f4;
 }
 
+.memory-modal__heat-tile span,
 .memory-modal__fallback {
   display: grid;
   place-items: center;
   overflow: hidden;
-  color: rgba(241, 249, 246, 0.88);
+  color: rgba(50, 118, 132, 0.38);
   background:
-    linear-gradient(115deg, rgba(18, 38, 39, 0.08), rgba(255, 255, 255, 0.16), rgba(18, 38, 39, 0.08)),
-    radial-gradient(circle at 24% 26%, rgba(205, 228, 198, 0.48), transparent 23%),
-    radial-gradient(circle at 76% 28%, rgba(106, 158, 151, 0.62), transparent 30%),
-    linear-gradient(145deg, #425c4e, #152624 48%, #091314);
+    linear-gradient(115deg, rgba(255, 255, 255, 0.5), rgba(176, 232, 242, 0.36), rgba(255, 255, 255, 0.46)),
+    radial-gradient(circle at 24% 26%, rgba(226, 246, 214, 0.78), transparent 23%),
+    radial-gradient(circle at 76% 28%, rgba(135, 215, 229, 0.5), transparent 30%),
+    linear-gradient(145deg, #f8fffb, #dff6f8 48%, #c9ece8);
 }
 
+.memory-modal__heat-tile span,
 .memory-modal__fallback span {
-  font-size: clamp(1.8rem, 5vw, 4.8rem);
+  font-size: clamp(1.2rem, 3vw, 3.6rem);
   font-weight: 500;
   opacity: 0.74;
   text-shadow: 0 4px 24px rgba(0, 0, 0, 0.42);
 }
 
-.memory-modal figcaption {
-  margin-top: 14px;
-  color: rgba(238, 247, 243, 0.66);
-  font-size: 0.92rem;
-  line-height: 1.6;
-}
-
-.memory-modal__controls {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: 12px;
-  margin: 18px 0 14px;
-}
-
-.memory-modal__controls button {
-  display: grid;
-  width: 38px;
-  height: 38px;
-  place-items: center;
-  border: 1px solid rgba(238, 247, 243, 0.18);
-  border-radius: 999px;
-  color: rgba(238, 247, 243, 0.9);
-  background: rgba(255, 255, 255, 0.06);
-  cursor: pointer;
-  font-size: 1.45rem;
-  line-height: 1;
-}
-
-.memory-modal__controls span {
-  color: rgba(238, 247, 243, 0.62);
-  font-size: 0.86rem;
-}
-
-.memory-modal__strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-}
-
-.memory-modal__strip button {
-  position: relative;
+.memory-modal__slider {
   overflow: hidden;
-  aspect-ratio: 16 / 9;
-  border: 1px solid rgba(238, 247, 243, 0.14);
-  border-radius: 5px;
-  padding: 0;
-  background: rgba(255, 255, 255, 0.06);
-  cursor: pointer;
+  padding: 42px 0 6px;
 }
 
-.memory-modal__strip img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  filter: saturate(0.8) brightness(0.75);
+.memory-modal__track {
+  --slide-width: min(54vw, 620px);
+  --slide-gap: clamp(12px, 1.6vw, 22px);
+  display: flex;
+  gap: var(--slide-gap);
+  width: max-content;
+  animation: continuous-slide var(--scroll-duration) linear infinite;
+  will-change: transform;
 }
 
-.memory-modal__strip span {
-  display: grid;
-  height: 100%;
-  place-items: center;
-  color: rgba(238, 247, 243, 0.72);
+.memory-modal__slide {
+  flex: 0 0 var(--slide-width);
+  height: min(62svh, 620px);
+  margin: 0;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.78);
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.5);
+  box-shadow: 0 24px 52px rgba(67, 139, 153, 0.18);
 }
 
-.memory-modal__thumb--active {
-  border-color: rgba(183, 232, 219, 0.7) !important;
-}
-
-.memory-modal__thumb--active img {
-  filter: saturate(1) brightness(1);
+@keyframes continuous-slide {
+  from {
+    transform: translateX(0);
+  }
+  to {
+    transform: translateX(calc(-50% - (var(--slide-gap) / 2)));
+  }
 }
 
 @media (max-width: 860px) {
@@ -355,25 +394,34 @@ onBeforeUnmount(() => {
   }
 
   .memory-modal {
-    grid-template-columns: 1fr;
-    align-content: start;
     width: 100vw;
     min-height: 100svh;
     max-height: none;
     border: 0;
     border-radius: 0;
-    overflow-y: auto;
-    padding: 72px 18px 26px;
+    overflow: hidden;
+    padding: 68px 12px 16px;
   }
 
-  .memory-modal__copy {
-    padding-bottom: 0;
+  .memory-modal--heatmap {
+    height: 100svh;
   }
 
-  .memory-modal__hero img,
-  .memory-modal__fallback {
-    max-height: none;
-    aspect-ratio: 4 / 3;
+  .memory-modal__heatmap {
+    height: 100%;
+    padding-right: 0;
+  }
+
+  .memory-modal__slider {
+    padding: 0;
+  }
+
+  .memory-modal__track {
+    --slide-width: min(78vw, 420px);
+  }
+
+  .memory-modal__slide {
+    height: min(62svh, 560px);
   }
 }
 </style>

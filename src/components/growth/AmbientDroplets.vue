@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useWaterParticles } from '../../composables/useWaterParticles'
 
-const { droplets, refresh } = useWaterParticles(26)
+const { droplets, refresh } = useWaterParticles(9)
 let timer: number | undefined
 
 onMounted(() => {
@@ -26,6 +26,10 @@ onBeforeUnmount(() => {
         '--y': `${droplet.y}%`,
         '--drift-x': `${droplet.driftX}px`,
         '--drift-y': `${droplet.driftY}px`,
+        '--attract-x': `${droplet.attractX}px`,
+        '--attract-y': `${droplet.attractY}px`,
+        '--stream-x': `${droplet.streamX}px`,
+        '--stream-y': `${droplet.streamY}px`,
         '--delay': `${droplet.delay}s`,
         '--duration': `${droplet.duration}s`,
         '--opacity': droplet.opacity,
@@ -38,7 +42,7 @@ onBeforeUnmount(() => {
 .ambient-droplets {
   position: absolute;
   inset: 0;
-  z-index: 2;
+  z-index: 4;
   pointer-events: none;
   overflow: hidden;
 }
@@ -65,18 +69,23 @@ onBeforeUnmount(() => {
 @keyframes ambient-life {
   0% {
     opacity: 0;
-    transform: translate3d(0, 0, 0) scale(0.82);
+    transform: translate3d(0, 26px, 0) scale(0.34);
   }
-  15% {
+  16% {
     opacity: var(--opacity);
+    transform: translate3d(var(--drift-x), var(--drift-y), 0) scale(0.82);
   }
-  62% {
+  48% {
     opacity: calc(var(--opacity) * 0.88);
-    transform: translate3d(var(--drift-x), var(--drift-y), 0) scale(1.06);
+    transform: translate3d(var(--attract-x), var(--attract-y), 0) scale(1.06);
+  }
+  76% {
+    opacity: calc(var(--opacity) * 0.72);
+    transform: translate3d(var(--stream-x), var(--stream-y), 0) scale(0.86);
   }
   100% {
     opacity: 0;
-    transform: translate3d(calc(var(--drift-x) * 1.45), 58vh, 0) scale(0.52);
+    transform: translate3d(calc(var(--stream-x) + var(--drift-x)), calc(var(--stream-y) - 42px), 0) scale(0.42);
   }
 }
 

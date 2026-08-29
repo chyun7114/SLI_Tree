@@ -1,6 +1,7 @@
-export type ValueId = 'ai' | 'integrity' | 'professionalism' | 'value'
+export type ValueId = 'droplet1' | 'droplet2' | 'droplet3' | 'droplet4'
 
 export type ValueState = 'idle' | 'selected' | 'bursting' | 'memory' | 'absorbing' | 'completed'
+export type ArchiveModalVariant = 'heatmap' | 'slider'
 
 export interface MemoryPhoto {
   id: string
@@ -12,8 +13,8 @@ export interface MemoryPhoto {
 export interface GrowthValue {
   id: ValueId
   title: string
-  subtitle: string
-  description: string
+  archiveLabel: string
+  modalVariant: ArchiveModalVariant
   photos: MemoryPhoto[]
   sphereOffset: {
     x: number
