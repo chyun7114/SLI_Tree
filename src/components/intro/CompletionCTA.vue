@@ -26,7 +26,7 @@ const emit = defineEmits<{
       :disabled="transitioning"
       @click="emit('enterMain')"
     >
-      <span>보러 가시겠습니까?</span>
+      <span>웹사이트 보러가기</span>
       <span class="transition-transform duration-300 group-hover:translate-x-1">→</span>
     </button>
   </section>
