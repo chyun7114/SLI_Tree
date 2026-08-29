@@ -40,7 +40,7 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
   height: var(--tree-height);
   transform: translateX(-50%);
   transform-origin: 50% 100%;
-  animation: tree-arrival 960ms cubic-bezier(0.16, 0.84, 0.24, 1) both;
+  animation: tree-arrival 1500ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
 }
 
 .growing-tree--stage-1 {
@@ -87,17 +87,22 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
     drop-shadow(0 2px 1px rgba(255, 245, 205, 0.08));
   transform-origin: 50% 100%;
   animation:
-    tree-grow-mask 960ms cubic-bezier(0.18, 0.82, 0.22, 1) both,
-    tree-real-sway 6.8s ease-in-out 1.1s infinite alternate;
+    tree-grow-mask 1320ms cubic-bezier(0.2, 0.78, 0.24, 1) both,
+    tree-real-sway 6.8s ease-in-out 1.45s infinite alternate;
 }
 
 @keyframes tree-arrival {
-  from {
-    opacity: 0.72;
-    transform: translateX(-50%) translateY(34px) scale(0.86);
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(30px) scale(0.92);
+    filter: blur(8px);
+  }
+  42% {
+    opacity: 0.68;
+    transform: translateX(-50%) translateY(13px) scale(0.97);
     filter: blur(3px);
   }
-  to {
+  100% {
     opacity: 1;
     transform: translateX(-50%) translateY(0) scale(1);
     filter: blur(0);
@@ -105,12 +110,17 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
 }
 
 @keyframes tree-grow-mask {
-  from {
+  0% {
     clip-path: inset(100% 0 0 0);
-    transform: scale(0.94, 0.88);
+    opacity: 0.22;
+    transform: scale(0.96, 0.9);
   }
-  to {
+  38% {
+    opacity: 0.72;
+  }
+  100% {
     clip-path: inset(0 0 0 0);
+    opacity: 1;
     transform: scale(1);
   }
 }

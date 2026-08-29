@@ -16,7 +16,7 @@ function createArchivePhotos(archiveId: GrowthValue['id'], folderName: string, c
 export const growthValues: GrowthValue[] = [
   {
     id: 'droplet1',
-    title: 'Archive 1',
+    title: 'AI',
     archiveLabel: '사진 아카이브 1',
     modalVariant: 'heatmap',
     sphereOffset: { x: -30, y: -34 },
@@ -24,7 +24,7 @@ export const growthValues: GrowthValue[] = [
   },
   {
     id: 'droplet2',
-    title: 'Archive 2',
+    title: 'Integrity',
     archiveLabel: '사진 아카이브 2',
     modalVariant: 'slider',
     sphereOffset: { x: 22, y: -8 },
@@ -32,7 +32,7 @@ export const growthValues: GrowthValue[] = [
   },
   {
     id: 'droplet3',
-    title: 'Archive 3',
+    title: 'Professionalism',
     archiveLabel: '사진 아카이브 3',
     modalVariant: 'heatmap',
     sphereOffset: { x: -46, y: 26 },
@@ -40,7 +40,7 @@ export const growthValues: GrowthValue[] = [
   },
   {
     id: 'droplet4',
-    title: 'Archive 4',
+    title: 'Value',
     archiveLabel: '사진 아카이브 4',
     modalVariant: 'slider',
     sphereOffset: { x: 36, y: 12 },

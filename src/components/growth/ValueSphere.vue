@@ -21,6 +21,11 @@ function select(event: MouseEvent | KeyboardEvent) {
 
 const filterId = computed(() => `water-droplet-wobble-${props.value.id}`)
 const filterUrl = computed(() => `url(#${filterId.value})`)
+const labelSize = computed(() => {
+  if (props.value.title === 'Professionalism') return 'clamp(0.82rem, 1.25vw, 1.08rem)'
+  if (props.value.title === 'Integrity') return 'clamp(1rem, 1.45vw, 1.28rem)'
+  return 'clamp(1.18rem, 1.65vw, 1.52rem)'
+})
 </script>
 
 <template>
@@ -34,6 +39,7 @@ const filterUrl = computed(() => `url(#${filterId.value})`)
       '--offset-x': `${value.sphereOffset.x}px`,
       '--offset-y': `${value.sphereOffset.y}px`,
       '--wobble-filter': filterUrl,
+      '--label-size': labelSize,
     }"
     @click="select"
     @keydown.enter.prevent="select"
@@ -55,6 +61,7 @@ const filterUrl = computed(() => `url(#${filterId.value})`)
       </filter>
     </svg>
     <img class="value-sphere__surface" src="/images/water-droplet.png" alt="" aria-hidden="true" />
+    <span class="value-sphere__label">{{ value.title }}</span>
   </button>
 </template>
 
@@ -182,6 +189,38 @@ const filterUrl = computed(() => `url(#${filterId.value})`)
   animation: droplet-slosh 4.9s ease-in-out infinite;
 }
 
+.value-sphere__label {
+  position: absolute;
+  left: 50%;
+  top: 51%;
+  z-index: 1;
+  display: grid;
+  min-width: 68%;
+  max-width: 82%;
+  min-height: 34%;
+  place-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.96);
+  background: radial-gradient(ellipse, rgba(20, 113, 147, 0.34), rgba(20, 113, 147, 0.08) 62%, transparent 72%);
+  font-size: var(--label-size);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow:
+    0 1px 3px rgba(0, 49, 75, 0.82),
+    0 0 10px rgba(0, 103, 145, 0.45),
+    0 0 18px rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  transition:
+    opacity 180ms ease,
+    transform 180ms ease,
+    filter 180ms ease;
+  pointer-events: none;
+}
+
 .value-sphere--idle:hover {
   filter: brightness(1.05);
 }
@@ -199,6 +238,10 @@ const filterUrl = computed(() => `url(#${filterId.value})`)
   animation: droplet-click-wobble 760ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
 }
 
+.value-sphere--bursting .value-sphere__label {
+  animation: label-pop-away 360ms ease forwards;
+}
+
 .value-sphere--memory,
 .value-sphere--absorbing {
   opacity: 0;
@@ -212,7 +255,8 @@ const filterUrl = computed(() => `url(#${filterId.value})`)
   filter: grayscale(0.1);
 }
 
-.value-sphere--completed .value-sphere__surface {
+.value-sphere--completed .value-sphere__surface,
+.value-sphere--completed .value-sphere__label {
   opacity: 0;
 }
 
@@ -286,6 +330,23 @@ const filterUrl = computed(() => `url(#${filterId.value})`)
     opacity: 0;
     transform: translate(var(--offset-x), calc(var(--offset-y) + 18px)) scale(0.26);
     filter: blur(8px);
+  }
+}
+
+@keyframes label-pop-away {
+  0% {
+    opacity: 1;
+    transform: translate(-50%, -50%) scale(1);
+  }
+  55% {
+    opacity: 0.78;
+    transform: translate(-50%, -50%) scale(1.08);
+    filter: blur(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.82);
+    filter: blur(5px);
   }
 }
 
