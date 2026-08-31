@@ -1,13 +1,30 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 
-const props = defineProps<{
-  stage: number
-  growthKey: number
+const props = withDefaults(
+  defineProps<{
+    stage: number
+    growthKey: number
+    canEnterForest?: boolean
+    isEnteringForest?: boolean
+  }>(),
+  {
+    canEnterForest: false,
+    isEnteringForest: false,
+  },
+)
+
+const emit = defineEmits<{
+  enterForest: [event: MouseEvent | KeyboardEvent]
 }>()
 
 const visibleStage = computed(() => Math.min(Math.max(props.stage, 0), 4))
 const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${visibleStage.value}단계.png` : ''))
+
+function enterForest(event: MouseEvent | KeyboardEvent) {
+  if (!props.canEnterForest || props.isEnteringForest) return
+  emit('enterForest', event)
+}
 </script>
 
 <template>
@@ -15,8 +32,20 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
     v-if="visibleStage > 0"
     :key="growthKey"
     class="growing-tree"
-    :class="[`growing-tree--stage-${visibleStage}`]"
-    aria-label="Growing tree"
+    :class="[
+      `growing-tree--stage-${visibleStage}`,
+      {
+        'growing-tree--can-enter': canEnterForest,
+        'growing-tree--entering': isEnteringForest,
+      },
+    ]"
+    :role="canEnterForest ? 'button' : undefined"
+    :tabindex="canEnterForest && !isEnteringForest ? 0 : undefined"
+    :aria-label="canEnterForest ? '숲 안으로 들어가기' : 'Growing tree'"
+    :aria-disabled="canEnterForest ? isEnteringForest : undefined"
+    @click="enterForest"
+    @keydown.enter.prevent="enterForest"
+    @keydown.space.prevent="enterForest"
   >
     <div class="growing-tree__shadow"></div>
     <img
@@ -41,6 +70,29 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
   transform: translateX(-50%);
   transform-origin: 50% 100%;
   animation: tree-arrival 1500ms cubic-bezier(0.18, 0.78, 0.22, 1) both;
+}
+
+.growing-tree--can-enter {
+  cursor: pointer;
+}
+
+.growing-tree--can-enter:focus-visible {
+  outline: 2px solid rgba(229, 255, 231, 0.92);
+  outline-offset: 12px;
+  border-radius: 42% 42% 10% 10%;
+}
+
+.growing-tree--can-enter:hover .growing-tree__image {
+  filter:
+    drop-shadow(0 22px 28px rgba(7, 19, 11, 0.28))
+    drop-shadow(0 0 22px rgba(189, 239, 141, 0.18));
+}
+
+.growing-tree--entering {
+  z-index: 9;
+  pointer-events: none;
+  transform-origin: 50% 72%;
+  animation: tree-enter-forest 1350ms cubic-bezier(0.16, 0.82, 0.2, 1) forwards;
 }
 
 .growing-tree--stage-1 {
@@ -91,6 +143,10 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
     tree-real-sway 6.8s ease-in-out 1.45s infinite alternate;
 }
 
+.growing-tree--entering .growing-tree__image {
+  animation: tree-pull-through 1350ms cubic-bezier(0.16, 0.82, 0.2, 1) forwards;
+}
+
 @keyframes tree-arrival {
   0% {
     opacity: 0;
@@ -131,6 +187,41 @@ const treeSrc = computed(() => (visibleStage.value > 0 ? `/images/tree/나무_${
   }
   to {
     transform: rotate(0.25deg) translateY(-1px);
+  }
+}
+
+@keyframes tree-enter-forest {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+    filter: blur(0);
+  }
+  38% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(10vh) scale(2.15);
+    filter: blur(1px);
+  }
+  76% {
+    opacity: 0.92;
+    transform: translateX(-50%) translateY(23vh) scale(5.8);
+    filter: blur(4px) brightness(0.55);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(30vh) scale(8.2);
+    filter: blur(10px) brightness(0.18);
+  }
+}
+
+@keyframes tree-pull-through {
+  0% {
+    transform: scale(1) rotate(0deg);
+  }
+  45% {
+    transform: scale(1.08, 1.02) rotate(-0.15deg);
+  }
+  100% {
+    transform: scale(1.2, 1.06) rotate(0.2deg);
   }
 }
 
