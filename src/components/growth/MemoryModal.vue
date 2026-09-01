@@ -31,6 +31,8 @@ const emit = defineEmits<{
 
 const modalRef = ref<HTMLElement | null>(null)
 const erroredPhotos = ref<Set<string>>(new Set())
+const selectedPhoto = ref<GrowthValue['photos'][number] | null>(null)
+const photoPreviewStyle = ref<CSSProperties>({})
 
 const sliderPhotos = computed(() => [...props.memory.photos, ...props.memory.photos])
 const sliderTrackStyle = computed<CSSProperties>(() => ({
@@ -47,6 +49,43 @@ const heatmapTiles = computed(() => createHeatmapTiles(heatmapSources.value))
 
 function close() {
   emit('close')
+}
+
+function closePhotoPreview() {
+  selectedPhoto.value = null
+}
+
+function openPhotoPreview(photo: GrowthValue['photos'][number], event: MouseEvent) {
+  const modalRect = modalRef.value?.getBoundingClientRect()
+  const tileRect = (event.currentTarget as HTMLElement).getBoundingClientRect()
+  if (!modalRect) return
+
+  const previewWidth = Math.min(window.innerWidth * 0.5, 760)
+  const previewHeight = Math.min(window.innerHeight * 0.5, 560)
+  const gap = 16
+  const tileCenterX = tileRect.left + tileRect.width / 2 - modalRect.left
+  const tileTop = tileRect.top - modalRect.top
+  const tileBottom = tileRect.bottom - modalRect.top
+
+  const minLeft = previewWidth / 2 + 12
+  const maxLeft = modalRect.width - previewWidth / 2 - 12
+  const left = Math.min(Math.max(tileCenterX, minLeft), Math.max(minLeft, maxLeft))
+  const preferredTop = tileTop - gap - previewHeight / 2
+  const fallbackTop = tileBottom + gap + previewHeight / 2
+  const topCandidate = preferredTop > previewHeight / 2 ? preferredTop : fallbackTop
+  const minTop = previewHeight / 2 + 12
+  const maxTop = modalRect.height - previewHeight / 2 - 12
+  const top = Math.min(Math.max(topCandidate, minTop), Math.max(minTop, maxTop))
+
+  selectedPhoto.value = photo
+  photoPreviewStyle.value = {
+    left: `${left}px`,
+    top: `${top}px`,
+    width: `${previewWidth}px`,
+    height: `${previewHeight}px`,
+    '--origin-x': `${tileCenterX - left + previewWidth / 2}px`,
+    '--origin-y': `${tileTop - top + previewHeight / 2}px`,
+  }
 }
 
 function markPhotoError(id: string) {
@@ -136,6 +175,11 @@ function createHeatmapTiles(sources: HeatmapSource[]) {
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
+    if (selectedPhoto.value) {
+      closePhotoPreview()
+      return
+    }
+
     close()
     return
   }
@@ -162,6 +206,7 @@ watch(
   () => props.memory.id,
   () => {
     erroredPhotos.value = new Set()
+    selectedPhoto.value = null
     nextTick(() => modalRef.value?.focus())
   },
 )
@@ -199,6 +244,7 @@ onBeforeUnmount(() => {
           :style="tile.style"
           type="button"
           :aria-label="`${tile.index + 1}번째 사진 보기`"
+          @click="openPhotoPreview(tile.photo, $event)"
         >
           <img
             v-if="!isPhotoErrored(tile.photo.id)"
@@ -234,6 +280,30 @@ onBeforeUnmount(() => {
           </figure>
         </div>
       </div>
+
+      <Transition name="photo-preview">
+        <aside
+          v-if="selectedPhoto"
+          class="memory-modal__photo-preview"
+          :style="photoPreviewStyle"
+          aria-label="선택한 사진 크게 보기"
+          @click.self="closePhotoPreview"
+        >
+          <button class="memory-modal__photo-close" type="button" aria-label="사진 크게 보기 닫기" @click="closePhotoPreview">
+            <span class="material-symbols-rounded" aria-hidden="true">close</span>
+          </button>
+          <img
+            v-if="!isPhotoErrored(selectedPhoto.id)"
+            :src="selectedPhoto.src"
+            :alt="selectedPhoto.alt"
+            decoding="async"
+            @error="markPhotoError(selectedPhoto.id)"
+          />
+          <div v-else class="memory-modal__fallback">
+            <span aria-hidden="true"></span>
+          </div>
+        </aside>
+      </Transition>
     </section>
   </div>
 </template>
@@ -290,6 +360,53 @@ onBeforeUnmount(() => {
   background: rgba(255, 255, 255, 0.66);
   box-shadow: 0 10px 24px rgba(94, 157, 169, 0.14);
   cursor: pointer;
+}
+
+.memory-modal__photo-preview {
+  position: absolute;
+  z-index: 3;
+  overflow: hidden;
+  border: 1px solid rgba(255, 255, 255, 0.84);
+  border-radius: 8px;
+  background: rgba(244, 253, 255, 0.92);
+  box-shadow: 0 26px 70px rgba(22, 67, 78, 0.28);
+  transform: translate(-50%, -50%);
+  transform-origin: var(--origin-x) var(--origin-y);
+}
+
+.memory-modal__photo-preview img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: rgba(226, 246, 250, 0.78);
+}
+
+.memory-modal__photo-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  z-index: 1;
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgba(95, 171, 188, 0.28);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.76);
+  box-shadow: 0 10px 22px rgba(39, 98, 110, 0.18);
+  cursor: pointer;
+}
+
+.memory-modal__photo-close span {
+  color: rgba(28, 91, 105, 0.82);
+  font-size: 22px;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  line-height: 1;
 }
 
 .memory-modal__close span {
@@ -388,6 +505,21 @@ onBeforeUnmount(() => {
   box-shadow: 0 24px 52px rgba(67, 139, 153, 0.18);
 }
 
+.photo-preview-enter-active,
+.photo-preview-leave-active {
+  transition:
+    opacity 220ms ease,
+    transform 260ms cubic-bezier(0.2, 0.82, 0.2, 1),
+    filter 260ms ease;
+}
+
+.photo-preview-enter-from,
+.photo-preview-leave-to {
+  opacity: 0;
+  filter: blur(4px);
+  transform: translate(-50%, -50%) scale(0.32);
+}
+
 @keyframes continuous-slide {
   from {
     transform: translateX(0);
@@ -424,6 +556,11 @@ onBeforeUnmount(() => {
 
   .memory-modal__slider {
     padding: 0;
+  }
+
+  .memory-modal__photo-preview {
+    width: min(50vw, calc(100vw - 24px)) !important;
+    height: min(50svh, 520px) !important;
   }
 
   .memory-modal__track {

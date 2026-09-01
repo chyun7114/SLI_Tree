@@ -76,9 +76,16 @@ function enterForest(event: MouseEvent | KeyboardEvent) {
   cursor: pointer;
 }
 
+.growing-tree--stage-4.growing-tree--can-enter::before {
+  position: absolute;
+  inset: -10% -18% -6%;
+  z-index: 1;
+  content: '';
+}
+
 .growing-tree--can-enter:focus-visible {
   outline: 2px solid rgba(229, 255, 231, 0.92);
-  outline-offset: 12px;
+  outline-offset: 22px;
   border-radius: 42% 42% 10% 10%;
 }
 
@@ -129,6 +136,8 @@ function enterForest(event: MouseEvent | KeyboardEvent) {
 }
 
 .growing-tree__image {
+  position: relative;
+  z-index: 0;
   display: block;
   width: 100%;
   height: 100%;
