@@ -204,6 +204,8 @@ onBeforeUnmount(() => {
             v-if="!isPhotoErrored(tile.photo.id)"
             :src="tile.photo.src"
             :alt="tile.photo.alt"
+            decoding="async"
+            fetchpriority="low"
             @error="markPhotoError(tile.photo.id)"
           />
           <span v-else aria-hidden="true"></span>
@@ -218,7 +220,14 @@ onBeforeUnmount(() => {
             class="memory-modal__slide"
             :aria-hidden="index >= memory.photos.length"
           >
-            <img v-if="!isPhotoErrored(photo.id)" :src="photo.src" :alt="photo.alt" @error="markPhotoError(photo.id)" />
+            <img
+              v-if="!isPhotoErrored(photo.id)"
+              :src="photo.src"
+              :alt="photo.alt"
+              loading="lazy"
+              decoding="async"
+              @error="markPhotoError(photo.id)"
+            />
             <div v-else class="memory-modal__fallback">
               <span aria-hidden="true"></span>
             </div>
@@ -264,6 +273,7 @@ onBeforeUnmount(() => {
 
 .memory-modal--heatmap {
   height: min(88svh, 760px);
+  padding: 0;
 }
 
 .memory-modal__close {
@@ -297,7 +307,6 @@ onBeforeUnmount(() => {
   position: relative;
   height: 100%;
   overflow: hidden;
-  padding-right: 52px;
 }
 
 .memory-modal__heat-tile {
@@ -308,7 +317,7 @@ onBeforeUnmount(() => {
   border-radius: 6px;
   padding: 0;
   background: rgba(255, 255, 255, 0.46);
-  box-shadow: 0 12px 26px rgba(75, 151, 164, 0.12);
+  contain: paint;
   cursor: pointer;
   transition:
     filter 180ms ease,
@@ -405,6 +414,7 @@ onBeforeUnmount(() => {
 
   .memory-modal--heatmap {
     height: 100svh;
+    padding: 0;
   }
 
   .memory-modal__heatmap {
