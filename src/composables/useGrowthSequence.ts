@@ -3,7 +3,7 @@ import type { BurstOrigin, GrowthValue, ValueId, ValueState } from '../types/gro
 
 const animationDelays = {
   burstToModal: 720,
-  modalFade: 260,
+  modalFade: 420,
   absorbToGrowth: 920,
   growth: 960,
 }

@@ -436,12 +436,17 @@ function ascendToSky() {
 
 .memory-modal-enter-active,
 .memory-modal-leave-active {
-  transition: opacity 260ms ease;
+  transition:
+    opacity 420ms ease,
+    transform 420ms cubic-bezier(0.2, 0.82, 0.2, 1),
+    filter 420ms ease;
 }
 
 .memory-modal-enter-from,
 .memory-modal-leave-to {
   opacity: 0;
+  filter: blur(8px);
+  transform: scale(0.985);
 }
 
 .sky-message-enter-active,

@@ -128,7 +128,7 @@ function getSplashStyle(size: number, index: number) {
   top: var(--y);
   width: var(--droplet-frame);
   height: var(--droplet-frame);
-  opacity: 0.7;
+  opacity: 0.5;
   animation: ambient-path var(--duration) ease-in-out var(--delay) infinite both;
   will-change: transform;
 }
