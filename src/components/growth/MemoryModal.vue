@@ -15,15 +15,14 @@ const emit = defineEmits<{
 const modalRef = ref<HTMLElement | null>(null)
 const heatmapWidth = ref(1000)
 const heatmapHeight = ref(700)
-const photoRatios = ref<Record<string, number>>({})
-const photoSizes = ref<Record<string, { width: number; height: number }>>({})
 let resizeObserver: ResizeObserver | undefined
 let previewStartTimer: number | undefined
 let previewCycleTimer: number | undefined
-let photoLoadVersion = 0
 const erroredPhotos = ref<Set<string>>(new Set())
 const selectedPhoto = ref<GrowthValue['photos'][number] | null>(null)
 const photoPreviewStyle = ref<CSSProperties>({})
+const photoPreviewDelayMs = 5000
+const photoPreviewVisibleMs = 7000
 
 const sliderPhotos = computed(() => [...props.memory.photos, ...props.memory.photos])
 const sliderTrackStyle = computed<CSSProperties>(() => ({
@@ -38,7 +37,7 @@ const heatmapSources = computed(() => {
 })
 const heatmapTiles = computed(() => {
   const sources = heatmapSources.value
-  const ratios = sources.map(({ photo }) => photoRatios.value[photo.id] ?? 1)
+  const ratios = sources.map(({ photo }) => photo.ratio)
   return createHeatmapLayout(ratios, heatmapWidth.value, heatmapHeight.value).map((rectangle) => ({
     ...sources[rectangle.index]!,
     style: {
@@ -73,21 +72,21 @@ function clearPreviewTimers() {
   }
 
   if (previewCycleTimer !== undefined) {
-    window.clearInterval(previewCycleTimer)
+    window.clearTimeout(previewCycleTimer)
     previewCycleTimer = undefined
   }
+
 }
 
 function getPhotoPreviewSize(photo: GrowthValue['photos'][number]) {
-  const naturalSize = photoSizes.value[photo.id] ?? { width: 720, height: 480 }
   const modalRect = modalRef.value?.getBoundingClientRect()
   const maxPreviewWidth = Math.max(120, Math.min((modalRect?.width ?? window.innerWidth) - 48, window.innerWidth - 48))
   const maxPreviewHeight = Math.max(120, Math.min((modalRect?.height ?? window.innerHeight) - 48, window.innerHeight - 48))
-  const previewScale = Math.min(1, maxPreviewWidth / naturalSize.width, maxPreviewHeight / naturalSize.height)
+  const previewScale = Math.min(1, maxPreviewWidth / photo.width, maxPreviewHeight / photo.height)
 
   return {
-    width: Math.round(naturalSize.width * previewScale),
-    height: Math.round(naturalSize.height * previewScale),
+    width: Math.round(photo.width * previewScale),
+    height: Math.round(photo.height * previewScale),
   }
 }
 
@@ -108,6 +107,16 @@ function showRandomPhotoPreview() {
   }
 }
 
+function scheduleNextPhotoPreview() {
+  previewCycleTimer = window.setTimeout(() => {
+    showRandomPhotoPreview()
+    previewCycleTimer = window.setTimeout(() => {
+      selectedPhoto.value = null
+      scheduleNextPhotoPreview()
+    }, photoPreviewVisibleMs)
+  }, photoPreviewDelayMs)
+}
+
 function startPhotoPreviewCycle() {
   clearPreviewTimers()
   selectedPhoto.value = null
@@ -115,42 +124,12 @@ function startPhotoPreviewCycle() {
 
   previewStartTimer = window.setTimeout(() => {
     showRandomPhotoPreview()
-    previewCycleTimer = window.setInterval(showRandomPhotoPreview, 7000)
-  }, 3000)
+    previewCycleTimer = window.setTimeout(() => {
+      selectedPhoto.value = null
+      scheduleNextPhotoPreview()
+    }, photoPreviewVisibleMs)
+  }, photoPreviewDelayMs)
 }
-
-const tileRatios = [1, 4 / 3, 16 / 9] as const
-
-function nearestTileRatio(width: number, height: number) {
-  const originalRatio = width / Math.max(height, 1)
-  return tileRatios.reduce((closest, ratio) =>
-    Math.abs(Math.log(originalRatio / ratio)) < Math.abs(Math.log(originalRatio / closest)) ? ratio : closest,
-  )
-}
-
-watch(
-  () => props.memory.photos,
-  async (photos) => {
-    const version = ++photoLoadVersion
-    const dimensions = await Promise.all(photos.map((photo) => new Promise<[string, number]>((resolve) => {
-      const image = new Image()
-      image.onload = () => {
-        photoSizes.value = {
-          ...photoSizes.value,
-          [photo.id]: {
-            width: image.naturalWidth || 1,
-            height: image.naturalHeight || 1,
-          },
-        }
-        resolve([photo.id, nearestTileRatio(image.naturalWidth, image.naturalHeight)])
-      }
-      image.onerror = () => resolve([photo.id, 1])
-      image.src = photo.src
-    })))
-    if (version === photoLoadVersion) photoRatios.value = Object.fromEntries(dimensions)
-  },
-  { immediate: true },
-)
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key !== 'Tab' || !modalRef.value) return
@@ -175,7 +154,6 @@ watch(
   () => props.memory.id,
   () => {
     erroredPhotos.value = new Set()
-    photoSizes.value = {}
     startPhotoPreviewCycle()
     nextTick(() => modalRef.value?.focus())
   },
@@ -201,7 +179,6 @@ onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown)
   resizeObserver?.disconnect()
   clearPreviewTimers()
-  photoLoadVersion++
 })
 </script>
 
@@ -229,7 +206,7 @@ onBeforeUnmount(() => {
         >
           <img
             v-if="!isPhotoErrored(tile.photo.id)"
-            :src="tile.photo.src"
+            :src="tile.photo.thumbnailSrc"
             :alt="tile.photo.alt"
             decoding="async"
             fetchpriority="low"

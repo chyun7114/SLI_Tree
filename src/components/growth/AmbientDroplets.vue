@@ -78,7 +78,7 @@ function getSplashStyle(size: number, index: number) {
       }"
     >
       <span class="ambient-droplet__body">
-        <img class="ambient-droplet__surface" src="/images/water-droplet.png" alt="" aria-hidden="true" />
+        <img class="ambient-droplet__surface" src="/images/small_waterdrop.png" alt="" aria-hidden="true" />
         <span class="ambient-droplet__keyword">{{ droplet.keyword }}</span>
       </span>
       <span
@@ -195,7 +195,7 @@ function getSplashStyle(size: number, index: number) {
   width: calc(var(--droplet-frame) * 0.08);
   height: calc(var(--droplet-frame) * 0.08);
   border-radius: 50%;
-  background: url('/images/water-droplet.png') center / cover no-repeat;
+  background: url('/images/small_waterdrop.png') center / cover no-repeat;
   opacity: 0;
   animation: ambient-splash var(--duration) ease-out var(--delay) infinite both;
 }

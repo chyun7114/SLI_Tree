@@ -6,8 +6,12 @@ export type ArchiveModalVariant = 'heatmap' | 'slider'
 export interface MemoryPhoto {
   id: string
   src: string
+  thumbnailSrc: string
   alt: string
   caption: string
+  width: number
+  height: number
+  ratio: number
 }
 
 export interface GrowthValue {

@@ -89,7 +89,6 @@ function ascendToSky() {
       <section v-if="isSkyView" class="growth-scene__sky-message" aria-label="마무리 메시지">
         <p class="growth-scene__sky-kicker">Growth completed</p>
         <h1>우리의 모든 순간, 삼성생명으로 잇다</h1>
-        <p>네 개의 가치가 하나의 나무가 되었고, 그 나무는 다시 숲 너머의 빛으로 이어집니다.</p>
       </section>
     </Transition>
 
@@ -286,7 +285,7 @@ function ascendToSky() {
   left: 50%;
   top: 50%;
   z-index: 5;
-  width: min(720px, calc(100vw - 40px));
+  width: min(1200px, calc(100vw - 40px));
   color: #16455d;
   text-align: center;
   text-shadow: 0 2px 20px rgba(255, 255, 255, 0.72);
@@ -296,11 +295,10 @@ function ascendToSky() {
 .growth-scene__sky-kicker {
   margin: 0 0 16px;
   color: rgba(16, 93, 122, 0.72);
-  font-size: clamp(0.72rem, 1vw, 0.86rem);
-  font-weight: 800;
+  font-size: 24px;
+  font-weight: 700;
   letter-spacing: 0.18em;
   line-height: 1.2;
-  text-transform: uppercase;
 }
 
 .growth-scene__sky-message h1 {
@@ -310,16 +308,7 @@ function ascendToSky() {
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1.08;
-}
-
-.growth-scene__sky-message p:last-child {
-  width: min(620px, 100%);
-  margin: clamp(20px, 3vh, 32px) auto 0;
-  color: rgba(24, 72, 91, 0.78);
-  font-size: clamp(1rem, 1.45vw, 1.28rem);
-  font-weight: 500;
-  letter-spacing: 0;
-  line-height: 1.7;
+  white-space: nowrap;
 }
 
 .growth-scene--entering-forest .growth-scene__atmosphere,

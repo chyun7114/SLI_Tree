@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
+    "generate:people-heatmap-assets": "node scripts/generate-people-heatmap-assets.mjs",
     "generate:people-heatmap": "node scripts/generate-people-heatmap-webp.mjs",
     "convert:people-webp": "node scripts/convert-people-to-webp.mjs",
     "preview": "vite preview"

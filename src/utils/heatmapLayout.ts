@@ -58,6 +58,7 @@ function retainCandidates(candidates: LayoutNode[], targetRatio: number): Layout
 /** Partition the actual viewport, with no overlaps, gaps, or offscreen tiles. */
 export function createHeatmapLayout(ratios: number[], width: number, height: number): HeatmapRectangle[] {
   if (ratios.length === 0 || width <= 0 || height <= 0) return []
+
   const targetRatio = width / height
   const table = Array.from({ length: ratios.length }, () => new Map<number, LayoutNode[]>())
   for (let index = 0; index < ratios.length; index++) {
