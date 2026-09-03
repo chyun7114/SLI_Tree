@@ -22,9 +22,9 @@ function select(event: MouseEvent | KeyboardEvent) {
 const filterId = computed(() => `water-droplet-wobble-${props.value.id}`)
 const filterUrl = computed(() => `url(#${filterId.value})`)
 const labelSize = computed(() => {
-  if (props.value.title === 'Professionalism') return 'clamp(0.82rem, 1.25vw, 1.08rem)'
-  if (props.value.title === 'Integrity') return 'clamp(1rem, 1.45vw, 1.28rem)'
-  return 'clamp(1.18rem, 1.65vw, 1.52rem)'
+  if (props.value.title === 'Professionalism') return '32px'
+  if (props.value.title === 'Integrity') return '40px'
+  return '44px'
 })
 </script>
 
@@ -203,7 +203,8 @@ const labelSize = computed(() => {
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.96);
   background: radial-gradient(ellipse, rgba(20, 113, 147, 0.34), rgba(20, 113, 147, 0.08) 62%, transparent 72%);
-  font-size: calc(var(--label-size) * 1.5);
+  font-family: 'Jalnan2', var(--font-sans);
+  font-size: var(--label-size);
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1;

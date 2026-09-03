@@ -53,16 +53,16 @@ watch(
 
 <template>
   <form
-    class="mx-auto w-full max-w-3xl transition-all duration-700 ease-out"
-    :class="stage === 'coding' || stage === 'completed' ? 'max-w-4xl translate-y-0 opacity-90' : ''"
+    class="mx-auto w-full max-w-[63.36rem] transition-all duration-700 ease-out"
+    :class="stage === 'coding' || stage === 'completed' ? 'max-w-[73.92rem] translate-y-0 opacity-90' : ''"
     @submit.prevent="handleSubmit"
   >
     <label class="sr-only" for="intro-prompt">AI에게 요청할 웹사이트 설명</label>
     <div
-      class="group flex min-h-18 items-end gap-3 rounded-[28px] border border-teal-200/80 bg-white/80 p-3 shadow-2xl shadow-sky-200/40 backdrop-blur-xl transition duration-500 focus-within:border-teal-300 focus-within:bg-white/95 md:min-h-20 md:p-4"
+      class="group flex min-h-[79px] items-end gap-[13px] rounded-[31px] border border-teal-200/80 bg-white/80 p-[13px] shadow-2xl shadow-sky-200/40 backdrop-blur-xl transition duration-500 focus-within:border-teal-300 focus-within:bg-white/95 md:min-h-[88px] md:p-[18px]"
     >
       <button
-        class="flex size-10 shrink-0 items-center justify-center rounded-2xl border border-sky-100 bg-sky-50 text-teal-700"
+        class="flex size-11 shrink-0 items-center justify-center rounded-[18px] border border-sky-100 bg-sky-50 text-teal-700"
         type="button"
         aria-label="요청 추가"
         tabindex="-1"
@@ -70,12 +70,12 @@ watch(
         <span class="material-symbols-rounded prompt-symbol" aria-hidden="true">attach_file</span>
       </button>
 
-      <div class="relative min-h-11 flex-1 py-2 text-left">
+      <div class="relative min-h-12 flex-1 py-[9px] text-left">
         <textarea
           id="intro-prompt"
           ref="promptArea"
           :value="modelValue"
-          class="block min-h-8 w-full resize-none overflow-hidden bg-transparent text-base font-semibold leading-8 text-slate-900 outline-none placeholder:font-medium placeholder:text-slate-400"
+          class="block min-h-[40px] w-full resize-none overflow-hidden bg-transparent text-[20px] font-semibold leading-[40px] text-slate-900 outline-none placeholder:font-medium placeholder:text-slate-400"
           :class="stage === 'idle' ? 'cursor-pointer' : 'cursor-default'"
           placeholder="무엇을 만들어볼까요?"
           :rows="promptRows"
@@ -92,7 +92,7 @@ watch(
       </div>
 
       <button
-        class="flex size-11 shrink-0 items-center justify-center rounded-2xl transition duration-300"
+        class="flex size-12 shrink-0 items-center justify-center rounded-[18px] transition duration-300"
         :class="
           stage === 'ready'
             ? 'bg-teal-500 text-white shadow-lg shadow-teal-200/70 hover:scale-[1.03] hover:bg-teal-600 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400'

@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 <template>
   <section class="mx-auto w-full max-w-5xl text-center">
-    <p class="text-sm uppercase tracking-[0.28em] text-teal-600">Build completed</p>
+    <p class="text-sm font-bold uppercase tracking-[0.12em] text-teal-600">Build completed</p>
     <h2 class="mt-4 whitespace-nowrap text-[2rem] font-semibold tracking-normal text-slate-950 sm:text-4xl md:text-5xl">
       34명의 이야기를 모두 담았습니다.
     </h2>

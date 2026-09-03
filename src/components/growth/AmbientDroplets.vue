@@ -3,6 +3,10 @@ import { useWaterParticles } from '../../composables/useWaterParticles'
 
 const { droplets } = useWaterParticles(10)
 
+function floorToFourPx(size: number) {
+  return `${Math.max(4, Math.floor(size / 4) * 4)}px`
+}
+
 function getKeywordParticleStyle(droplet: { seedX: number; seedY: number; letterFontSize: number }, index: number, count: number) {
   const center = (count - 1) / 2
   const side = index - center
@@ -21,9 +25,11 @@ function getKeywordParticleStyle(droplet: { seedX: number; seedY: number; letter
 
 function getSplashStyle(size: number, index: number) {
   const angle = index * Math.PI / 4
+  const splashDistance = size * 2.052
+
   return {
-    '--splash-x': `${Math.cos(angle) * size * 1.35}px`,
-    '--splash-y': `${Math.sin(angle) * size * 0.95}px`,
+    '--splash-x': `${Math.cos(angle) * splashDistance * 0.6}px`,
+    '--splash-y': `${Math.sin(angle) * splashDistance * 0.42}px`,
   }
 }
 </script>
@@ -36,8 +42,8 @@ function getSplashStyle(size: number, index: number) {
       class="ambient-droplet"
       :style="{
         '--size': `${droplet.size}px`,
-        '--keyword-font-size': `${droplet.keywordFontSize}px`,
-        '--letter-font-size': `${droplet.letterFontSize}px`,
+        '--keyword-font-size': floorToFourPx(droplet.keywordFontSize * 1.5),
+        '--letter-font-size': floorToFourPx(droplet.letterFontSize * 1.18),
         '--x': `${droplet.x}%`,
         '--y': `${droplet.y}vh`,
         '--drift-x': `${droplet.driftX}px`,
@@ -55,9 +61,9 @@ function getSplashStyle(size: number, index: number) {
       }"
     >
       <span class="ambient-droplet__body">
+        <img class="ambient-droplet__surface" src="/images/water-droplet.png" alt="" aria-hidden="true" />
         <span class="ambient-droplet__keyword">{{ droplet.keyword }}</span>
       </span>
-      <span class="ambient-droplet__burst-ring"></span>
       <span
         v-for="index in 8"
         :key="`splash-${index}`"
@@ -88,12 +94,24 @@ function getSplashStyle(size: number, index: number) {
 }
 
 .ambient-droplet {
-  --fall-distance: calc(100svh - var(--soil-height) - var(--y) - var(--size));
+  --droplet-frame: calc(var(--size) * 2.052);
+  --soil-impact-depth: clamp(18px, 2.8vh, 30px);
+  --pop-start: 91.69%;
+  --pop-point-a: 93.02%;
+  --pop-point-b: 94.68%;
+  --pop-point-c: 96.51%;
+  --label-point-a: 93.5%;
+  --label-end: 95.62%;
+  --surface-point-a: 93.18%;
+  --surface-point-b: 94.85%;
+  --surface-point-c: 96.84%;
+  --fall-distance: calc(100svh - var(--soil-height) - var(--y) - var(--droplet-frame) + var(--soil-impact-depth));
   position: absolute;
   left: var(--x);
   top: var(--y);
-  width: var(--size);
-  height: var(--size);
+  width: var(--droplet-frame);
+  height: var(--droplet-frame);
+  opacity: 0.7;
   animation: ambient-path var(--duration) ease-in-out var(--delay) infinite both;
   will-change: transform;
 }
@@ -103,76 +121,85 @@ function getSplashStyle(size: number, index: number) {
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 999px;
   background: transparent;
   opacity: 0;
-  overflow: hidden;
-  animation: droplet-impact var(--duration) cubic-bezier(0.3, 0.02, 0.24, 1) var(--delay) infinite both;
-  will-change: opacity, transform, filter;
+  animation: ambient-pop-burst var(--duration) cubic-bezier(0.22, 0.78, 0.28, 1) var(--delay) infinite both;
+  will-change: opacity, transform;
 }
 
-.ambient-droplet__body::before {
+.ambient-droplet__surface {
   position: absolute;
   inset: 0;
-  content: '';
-  background: url('/images/ambient-water-droplet.png') center / contain no-repeat;
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 20px 34px rgba(9, 72, 92, 0.24));
+  transform-origin: center;
+  animation: ambient-click-wobble var(--duration) cubic-bezier(0.2, 0.8, 0.2, 1) var(--delay) infinite both;
+  will-change: transform;
 }
 
-.ambient-droplet__burst-ring {
+.ambient-droplet__keyword {
   position: absolute;
-  inset: 0;
-  border: 2px solid rgba(225, 249, 255, 0.95);
-  border-radius: 50%;
-  opacity: 0;
-  box-shadow: 0 0 8px rgba(100, 193, 255, 0.7);
-  animation: ambient-burst-ring var(--duration) ease-out var(--delay) infinite both;
+  left: 50%;
+  top: 51%;
+  z-index: 1;
+  display: grid;
+  min-width: 68%;
+  max-width: 82%;
+  min-height: 34%;
+  place-items: center;
+  padding: 0 9px;
+  border-radius: 999px;
+  color: rgba(255, 255, 255, 0.96);
+  background: radial-gradient(ellipse, rgba(20, 113, 147, 0.34), rgba(20, 113, 147, 0.08) 62%, transparent 72%);
+  font-family: 'Jalnan2', var(--font-sans);
+  font-size: var(--keyword-font-size);
+  font-weight: 700;
+  letter-spacing: 0;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
+  text-shadow:
+    0 1px 3px rgba(0, 49, 75, 0.82),
+    0 0 10px rgba(0, 103, 145, 0.45),
+    0 0 18px rgba(255, 255, 255, 0.5);
+  transform: translate(-50%, -50%);
+  animation: keyword-held var(--duration) ease-out var(--delay) infinite both;
+  will-change: opacity, transform;
+  pointer-events: none;
 }
 
 .ambient-droplet__splash {
   position: absolute;
   left: 50%;
-  top: 50%;
-  width: calc(var(--size) * 0.18);
-  height: calc(var(--size) * 0.18);
+  top: 72%;
+  width: calc(var(--droplet-frame) * 0.08);
+  height: calc(var(--droplet-frame) * 0.08);
   border-radius: 50%;
-  background: url('/images/ambient-water-droplet.png') center / cover no-repeat;
+  background: url('/images/water-droplet.png') center / cover no-repeat;
   opacity: 0;
   animation: ambient-splash var(--duration) ease-out var(--delay) infinite both;
-}
-
-.ambient-droplet__keyword {
-  position: relative;
-  z-index: 1;
-  max-width: calc(var(--size) - 2px);
-  color: #fff;
-  font-size: var(--keyword-font-size);
-  font-weight: 600;
-  letter-spacing: 0.08em;
-  line-height: 1.05;
-  overflow: hidden;
-  text-align: center;
-  text-overflow: clip;
-  text-shadow: 0 1px 3px rgba(0, 35, 90, 0.8);
-  white-space: nowrap;
-  transform: translateZ(0);
-  font-kerning: normal;
-  animation: keyword-held var(--duration) ease-out var(--delay) infinite both;
 }
 
 .ambient-droplet__letter {
   position: absolute;
   left: 50%;
-  top: 50%;
+  top: 51%;
   z-index: 2;
-  color: #fff;
+  color: rgba(255, 255, 255, 0.98);
+  font-family: 'Jalnan2', var(--font-sans);
   font-size: var(--letter-font-size);
   font-weight: 800;
   line-height: 1;
   opacity: 0;
-  text-shadow: 0 2px 5px rgba(26, 16, 8, 0.12);
+  text-shadow:
+    0 1px 3px rgba(0, 49, 75, 0.82),
+    0 0 10px rgba(0, 103, 145, 0.4);
   transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.72);
   animation: keyword-scatter var(--duration) ease-out calc(var(--delay) + var(--letter-delay)) infinite both;
-  will-change: opacity, transform, filter;
+  will-change: opacity, transform;
 }
 
 .ambient-droplet__letter--space {
@@ -201,119 +228,119 @@ function getSplashStyle(size: number, index: number) {
   80% {
     transform: translate3d(calc(var(--impact-x) + 16px), calc(var(--fall-distance) * 0.9), 0) rotate(-2deg) scale(0.94);
   }
-  88% {
-    transform: translate3d(var(--impact-x), var(--fall-distance), 0) rotate(0deg) scale(0.94, 1.08);
+  91.69% {
+    transform: translate3d(var(--impact-x), var(--fall-distance), 0) rotate(0deg) scale(1);
   }
   100% {
     transform: translate3d(var(--impact-x), var(--fall-distance), 0) scale(1);
   }
 }
 
-@keyframes droplet-impact {
+@keyframes ambient-pop-burst {
   0%,
-  86% {
+  91.69% {
     opacity: 1;
-    transform: scale(1);
-    filter: blur(0);
+    transform: translate3d(0, 0, 0) scale(1);
   }
-  88% {
+  93.02% {
+    transform: translate3d(0, -5px, 0) scale(1.08, 0.94);
+  }
+  94.68% {
     opacity: 1;
-    transform: scale(1.2, 0.65);
-    filter: blur(0);
+    transform: translate3d(0, 3px, 0) scale(0.9, 1.12);
   }
-  90% {
-    opacity: 0.4;
-    transform: scale(1.5, 1.15);
-    filter: blur(1px);
+  96.51% {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1.04);
   }
-  92%,
   100% {
     opacity: 0;
-    transform: scale(1.8, 1.4);
-    filter: blur(3px);
+    transform: translate3d(0, 18px, 0) scale(0.26);
+  }
+}
+
+@keyframes ambient-click-wobble {
+  0%,
+  91.69% {
+    transform: scale(1, 1);
+  }
+  93.18% {
+    transform: scale(1.1, 0.92);
+  }
+  94.85% {
+    transform: scale(0.9, 1.13);
+  }
+  96.84% {
+    transform: scale(1.04, 0.98);
+  }
+  100% {
+    transform: scale(1, 1);
   }
 }
 
 @keyframes keyword-held {
   0%,
-  82% {
+  91.69% {
     opacity: 1;
-    filter: blur(0);
-    transform: translate3d(0, 0, 0);
+    transform: translate(-50%, -50%) scale(1);
   }
-  84% {
-    opacity: 0;
-    transform: translate3d(0, 1px, 0);
+  93.5% {
+    opacity: 0.78;
+    transform: translate(-50%, -50%) scale(1.08);
   }
+  95.62%,
   100% {
     opacity: 0;
-    filter: blur(1px);
-    transform: translate3d(0, 3px, 0) scale(0.72);
+    transform: translate(-50%, -50%) scale(0.82);
   }
 }
 
 @keyframes keyword-scatter {
   0%,
-  84% {
+  91.69% {
     opacity: 0;
-    filter: blur(0);
-    transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.72) rotate(0);
+    transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.78) rotate(0);
   }
-  88% {
+  93.5% {
     opacity: 1;
-    transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.9) rotate(0);
+    transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(1.04) rotate(0);
   }
-  92% {
+  96.51% {
     opacity: 1;
-    transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.92) rotate(0);
+    transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.96) rotate(0);
   }
   100% {
     opacity: 0;
-    filter: blur(2px);
     transform: translate(calc(-50% + var(--letter-x)), calc(-50% + var(--letter-y))) scale(0.36) rotate(var(--letter-rotate));
-  }
-}
-
-@keyframes ambient-burst-ring {
-  0%,
-  87% {
-    opacity: 0;
-    transform: scale(0.65);
-  }
-  89% {
-    opacity: 0.95;
-    transform: scale(1.1);
-  }
-  96%,
-  100% {
-    opacity: 0;
-    transform: scale(2.6);
   }
 }
 
 @keyframes ambient-splash {
   0%,
-  87% {
+  91.69% {
     opacity: 0;
-    transform: translate(-50%, -50%) scale(0.4);
+    transform: translate(-50%, -50%) scale(0.38);
   }
-  89% {
-    opacity: 1;
-    transform: translate(calc(-50% + var(--splash-x) * 0.3), calc(-50% + var(--splash-y) * 0.3)) scale(1);
+  93.5% {
+    opacity: 0.95;
+    transform: translate(calc(-50% + var(--splash-x) * 0.28), calc(-50% + var(--splash-y) * 0.28)) scale(1);
   }
-  96%,
+  96.51% {
+    opacity: 0.72;
+    transform: translate(calc(-50% + var(--splash-x) * 0.64), calc(-50% + var(--splash-y) * 0.64)) scale(0.72);
+  }
   100% {
     opacity: 0;
-    transform: translate(calc(-50% + var(--splash-x)), calc(-50% + var(--splash-y))) scale(0.3);
+    transform: translate(calc(-50% + var(--splash-x)), calc(-50% + var(--splash-y))) scale(0.25);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ambient-droplet,
   .ambient-droplet__body,
-  .ambient-droplet__burst-ring,
-  .ambient-droplet__splash,
+  .ambient-droplet__surface,
   .ambient-droplet__keyword,
+  .ambient-droplet__splash,
   .ambient-droplet__letter {
     animation: none;
   }

@@ -301,7 +301,8 @@ onBeforeUnmount(() => {
 }
 
 .memory-modal--heatmap {
-  height: min(88svh, 760px);
+  width: min(1600px, 97vw);
+  height: min(900px, 88svh);
   border: 0;
   padding: 0;
 }
@@ -389,10 +390,11 @@ onBeforeUnmount(() => {
 
 .memory-modal__heat-tile {
   position: absolute;
+  box-sizing: border-box;
   min-width: 0;
   overflow: hidden;
   min-height: 0;
-  border: 0;
+  border: 1px solid #fff;
   border-radius: 0;
   padding: 0;
   background: rgba(255, 255, 255, 0.46);
