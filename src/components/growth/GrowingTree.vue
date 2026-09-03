@@ -65,8 +65,8 @@ function enterForest(event: MouseEvent | KeyboardEvent) {
   left: 50%;
   bottom: clamp(92px, 15vh, 162px);
   z-index: 4;
-  width: var(--tree-width);
-  height: var(--tree-height);
+  width: calc(var(--tree-width) * 1.3);
+  height: calc(var(--tree-height) * 1.3);
   transform: translateX(-50%);
   transform-origin: 50% 100%;
   animation: tree-arrival 1500ms cubic-bezier(0.18, 0.78, 0.22, 1) both;

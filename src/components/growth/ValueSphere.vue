@@ -81,8 +81,8 @@ const labelSize = computed(() => {
   --orbit-y-c: 6px;
   --orbit-rotate-c: -0.9deg;
   position: relative;
-  width: calc(var(--sphere-size) * 2.4);
-  height: calc(var(--sphere-size) * 2.4);
+  width: calc(var(--sphere-size) * 2.28);
+  height: calc(var(--sphere-size) * 2.28);
   border: 0;
   border-radius: 999px;
   padding: 0;

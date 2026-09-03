@@ -105,7 +105,7 @@ export function useWaterParticles(count = 10) {
       seedY: 6 + Math.random() * 14,
       delay: Math.random() * -18,
       duration: 12.8 + Math.random() * 11.2,
-      opacity: 0.38 + Math.random() * 0.34,
+      opacity: 1,
     }
   }
 

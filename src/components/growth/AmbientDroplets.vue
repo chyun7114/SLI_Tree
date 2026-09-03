@@ -1,33 +1,31 @@
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted } from 'vue'
 import { useWaterParticles } from '../../composables/useWaterParticles'
 
-const { droplets, refresh } = useWaterParticles(10)
-let timer: number | undefined
+const { droplets } = useWaterParticles(10)
 
-function getKeywordParticleStyle(droplet: { seedX: number; seedY: number }, index: number, count: number) {
+function getKeywordParticleStyle(droplet: { seedX: number; seedY: number; letterFontSize: number }, index: number, count: number) {
   const center = (count - 1) / 2
   const side = index - center
   const wave = index % 2 === 0 ? -1 : 1
-  const startSpacing = count === 2 ? 10 : 12
-  const scatterSpacing = count === 2 ? 10 : 18
+  const startSpacing = Math.max(22, droplet.letterFontSize * (count === 2 ? 1.5 : 1.3))
+  const scatterSpacing = Math.max(startSpacing + 12, droplet.letterFontSize * (count === 2 ? 2.4 : 2))
 
   return {
-    '--letter-start-x': `${side * startSpacing}px`,
-    '--letter-x': `${droplet.seedX + side * scatterSpacing}px`,
+    '--letter-start-x': `${side * startSpacing * 0.7}px`,
+    '--letter-x': `${droplet.seedX + side * scatterSpacing * 0.7}px`,
     '--letter-y': `${droplet.seedY + Math.abs(side) * 2.2 + wave * 8}px`,
     '--letter-rotate': `${side * 16 + wave * 22}deg`,
     '--letter-delay': `${index * 5}ms`,
   }
 }
 
-onMounted(() => {
-  timer = window.setInterval(refresh, 17600)
-})
-
-onBeforeUnmount(() => {
-  if (timer) window.clearInterval(timer)
-})
+function getSplashStyle(size: number, index: number) {
+  const angle = index * Math.PI / 4
+  return {
+    '--splash-x': `${Math.cos(angle) * size * 1.35}px`,
+    '--splash-y': `${Math.sin(angle) * size * 0.95}px`,
+  }
+}
 </script>
 
 <template>
@@ -59,6 +57,13 @@ onBeforeUnmount(() => {
       <span class="ambient-droplet__body">
         <span class="ambient-droplet__keyword">{{ droplet.keyword }}</span>
       </span>
+      <span class="ambient-droplet__burst-ring"></span>
+      <span
+        v-for="index in 8"
+        :key="`splash-${index}`"
+        class="ambient-droplet__splash"
+        :style="getSplashStyle(droplet.size, index - 1)"
+      ></span>
       <span
         v-for="(letter, letterIndex) in droplet.keyword.split('')"
         :key="`${droplet.id}-${letterIndex}`"
@@ -99,14 +104,7 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   border-radius: 999px;
-  background:
-    radial-gradient(circle at 32% 24%, rgba(255, 255, 255, 0.92) 0 14%, transparent 28%),
-    radial-gradient(circle at 60% 70%, rgba(92, 203, 222, 0.34), transparent 46%),
-    rgba(198, 246, 255, 0.3);
-  box-shadow:
-    inset 2px 3px 6px rgba(255, 255, 255, 0.45),
-    inset -3px -4px 6px rgba(19, 84, 100, 0.2),
-    0 8px 18px rgba(8, 42, 48, 0.16);
+  background: transparent;
   opacity: 0;
   overflow: hidden;
   animation: droplet-impact var(--duration) cubic-bezier(0.3, 0.02, 0.24, 1) var(--delay) infinite both;
@@ -115,26 +113,30 @@ onBeforeUnmount(() => {
 
 .ambient-droplet__body::before {
   position: absolute;
-  inset: 18% 14% auto auto;
-  width: 28%;
-  height: 34%;
-  border-radius: 999px;
+  inset: 0;
   content: '';
-  background: rgba(255, 255, 255, 0.34);
-  filter: blur(2px);
+  background: url('/images/ambient-water-droplet.png') center / contain no-repeat;
 }
 
-.ambient-droplet__body::after {
+.ambient-droplet__burst-ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid rgba(225, 249, 255, 0.95);
+  border-radius: 50%;
+  opacity: 0;
+  box-shadow: 0 0 8px rgba(100, 193, 255, 0.7);
+  animation: ambient-burst-ring var(--duration) ease-out var(--delay) infinite both;
+}
+
+.ambient-droplet__splash {
   position: absolute;
   left: 50%;
-  bottom: -6px;
-  width: 180%;
-  height: 42%;
-  border-radius: 999px;
-  content: '';
-  background: radial-gradient(ellipse, rgba(188, 240, 248, 0.38), transparent 68%);
+  top: 50%;
+  width: calc(var(--size) * 0.18);
+  height: calc(var(--size) * 0.18);
+  border-radius: 50%;
+  background: url('/images/ambient-water-droplet.png') center / cover no-repeat;
   opacity: 0;
-  transform: translateX(-50%) scaleX(0.3);
   animation: ambient-splash var(--duration) ease-out var(--delay) infinite both;
 }
 
@@ -142,7 +144,7 @@ onBeforeUnmount(() => {
   position: relative;
   z-index: 1;
   max-width: calc(var(--size) - 2px);
-  color: rgba(23, 75, 88, 0.58);
+  color: #fff;
   font-size: var(--keyword-font-size);
   font-weight: 600;
   letter-spacing: 0.08em;
@@ -150,7 +152,7 @@ onBeforeUnmount(() => {
   overflow: hidden;
   text-align: center;
   text-overflow: clip;
-  text-shadow: 0 1px 1px rgba(255, 255, 255, 0.66);
+  text-shadow: 0 1px 3px rgba(0, 35, 90, 0.8);
   white-space: nowrap;
   transform: translateZ(0);
   font-kerning: normal;
@@ -162,7 +164,7 @@ onBeforeUnmount(() => {
   left: 50%;
   top: 50%;
   z-index: 2;
-  color: rgba(76, 48, 28, 0.76);
+  color: #fff;
   font-size: var(--letter-font-size);
   font-weight: 800;
   line-height: 1;
@@ -208,32 +210,26 @@ onBeforeUnmount(() => {
 }
 
 @keyframes droplet-impact {
-  0% {
-    opacity: 0;
+  0%,
+  86% {
+    opacity: 1;
     transform: scale(1);
     filter: blur(0);
-  }
-  12% {
-    opacity: var(--opacity);
-    transform: scale(1);
-  }
-  84% {
-    opacity: calc(var(--opacity) * 0.92);
-    transform: scale(1);
   }
   88% {
-    opacity: calc(var(--opacity) * 0.8);
-    transform: scale(1.06, 0.7);
+    opacity: 1;
+    transform: scale(1.2, 0.65);
     filter: blur(0);
   }
-  92% {
-    opacity: calc(var(--opacity) * 0.28);
-    transform: scale(1.75, 0.2);
+  90% {
+    opacity: 0.4;
+    transform: scale(1.5, 1.15);
     filter: blur(1px);
   }
+  92%,
   100% {
     opacity: 0;
-    transform: scale(2.2, 0.08);
+    transform: scale(1.8, 1.4);
     filter: blur(3px);
   }
 }
@@ -241,12 +237,12 @@ onBeforeUnmount(() => {
 @keyframes keyword-held {
   0%,
   82% {
-    opacity: 0.72;
+    opacity: 1;
     filter: blur(0);
     transform: translate3d(0, 0, 0);
   }
-  88% {
-    opacity: 0.56;
+  84% {
+    opacity: 0;
     transform: translate3d(0, 1px, 0);
   }
   100% {
@@ -264,11 +260,11 @@ onBeforeUnmount(() => {
     transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.72) rotate(0);
   }
   88% {
-    opacity: 0.7;
+    opacity: 1;
     transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.9) rotate(0);
   }
   92% {
-    opacity: 0.74;
+    opacity: 1;
     transform: translate(calc(-50% + var(--letter-start-x)), -50%) scale(0.92) rotate(0);
   }
   100% {
@@ -278,26 +274,45 @@ onBeforeUnmount(() => {
   }
 }
 
-@keyframes ambient-splash {
+@keyframes ambient-burst-ring {
   0%,
-  86% {
+  87% {
     opacity: 0;
-    transform: translateX(-50%) scaleX(0.3);
+    transform: scale(0.65);
   }
-  94% {
-    opacity: calc(var(--opacity) * 0.7);
-    transform: translateX(-50%) scaleX(1);
+  89% {
+    opacity: 0.95;
+    transform: scale(1.1);
   }
+  96%,
   100% {
     opacity: 0;
-    transform: translateX(-50%) scaleX(1.45);
+    transform: scale(2.6);
+  }
+}
+
+@keyframes ambient-splash {
+  0%,
+  87% {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.4);
+  }
+  89% {
+    opacity: 1;
+    transform: translate(calc(-50% + var(--splash-x) * 0.3), calc(-50% + var(--splash-y) * 0.3)) scale(1);
+  }
+  96%,
+  100% {
+    opacity: 0;
+    transform: translate(calc(-50% + var(--splash-x)), calc(-50% + var(--splash-y))) scale(0.3);
   }
 }
 
 @media (prefers-reduced-motion: reduce) {
   .ambient-droplet,
   .ambient-droplet__body,
-  .ambient-droplet__body::after,
+  .ambient-droplet__burst-ring,
+  .ambient-droplet__splash,
   .ambient-droplet__keyword,
   .ambient-droplet__letter {
     animation: none;

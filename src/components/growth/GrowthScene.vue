@@ -88,7 +88,7 @@ function ascendToSky() {
     <Transition name="sky-message">
       <section v-if="isSkyView" class="growth-scene__sky-message" aria-label="마무리 메시지">
         <p class="growth-scene__sky-kicker">Growth completed</p>
-        <h1>우리는 더 넓은 하늘로 자라났습니다.</h1>
+        <h1>우리의 모든 순간, 삼성생명으로 잇다</h1>
         <p>네 개의 가치가 하나의 나무가 되었고, 그 나무는 다시 숲 너머의 빛으로 이어집니다.</p>
       </section>
     </Transition>
