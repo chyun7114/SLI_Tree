@@ -295,19 +295,21 @@ function ascendToSky() {
 .growth-scene__sky-kicker {
   margin: 0 0 16px;
   color: rgba(16, 93, 122, 0.72);
-  font-size: 24px;
+  font-size: 32px;
   font-weight: 700;
   letter-spacing: 0.18em;
   line-height: 1.2;
 }
 
 .growth-scene__sky-message h1 {
+  width: 100%;
   margin: 0;
   color: #123f57;
   font-size: clamp(2.4rem, 5.4vw, 5.8rem);
   font-weight: 800;
   letter-spacing: 0;
   line-height: 1.08;
+  text-align: center;
   white-space: nowrap;
 }
 

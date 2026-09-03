@@ -12,9 +12,21 @@ const emit = defineEmits<{
   close: []
 }>()
 
+function shufflePhotoIds(photos: GrowthValue['photos']) {
+  const ids = photos.map((photo) => photo.id)
+
+  for (let index = ids.length - 1; index > 0; index--) {
+    const randomIndex = Math.floor(Math.random() * (index + 1))
+    ;[ids[index], ids[randomIndex]] = [ids[randomIndex]!, ids[index]!]
+  }
+
+  return ids
+}
+
 const modalRef = ref<HTMLElement | null>(null)
 const heatmapWidth = ref(1000)
 const heatmapHeight = ref(700)
+const heatmapPhotoIds = ref(shufflePhotoIds(props.memory.photos))
 let resizeObserver: ResizeObserver | undefined
 let previewStartTimer: number | undefined
 let previewCycleTimer: number | undefined
@@ -28,18 +40,27 @@ const sliderPhotos = computed(() => [...props.memory.photos, ...props.memory.pho
 const sliderTrackStyle = computed<CSSProperties>(() => ({
   '--scroll-duration': `${Math.max(56, props.memory.photos.length * 2.9)}s`,
 }))
+const heatmapPhotos = computed(() => {
+  const photoById = new Map(props.memory.photos.map((photo) => [photo.id, photo]))
+  return heatmapPhotoIds.value
+    .map((id) => photoById.get(id))
+    .filter((photo): photo is GrowthValue['photos'][number] => photo !== undefined)
+})
 const heatmapSources = computed(() => {
-  const availablePhotos = props.memory.photos
+  const availablePhotos = heatmapPhotos.value
     .map((photo, index) => ({ index, photo }))
     .filter((item) => !erroredPhotos.value.has(item.photo.id))
 
-  return availablePhotos.length > 0 ? availablePhotos : props.memory.photos.map((photo, index) => ({ index, photo }))
+  return availablePhotos.length > 0
+    ? availablePhotos
+    : heatmapPhotos.value.map((photo, index) => ({ index, photo }))
 })
 const heatmapTiles = computed(() => {
-  const sources = heatmapSources.value
-  const ratios = sources.map(({ photo }) => photo.ratio)
+  // Keep the partition geometry stable; only shuffle which photo fills each slot.
+  const ratios = props.memory.photos.map((photo) => photo.ratio)
   return createHeatmapLayout(ratios, heatmapWidth.value, heatmapHeight.value).map((rectangle) => ({
-    ...sources[rectangle.index]!,
+    index: rectangle.index,
+    photo: heatmapPhotos.value[rectangle.index]!,
     style: {
       left: `${rectangle.x}%`,
       top: `${rectangle.y}%`,
@@ -154,6 +175,7 @@ watch(
   () => props.memory.id,
   () => {
     erroredPhotos.value = new Set()
+    heatmapPhotoIds.value = shufflePhotoIds(props.memory.photos)
     startPhotoPreviewCycle()
     nextTick(() => modalRef.value?.focus())
   },
