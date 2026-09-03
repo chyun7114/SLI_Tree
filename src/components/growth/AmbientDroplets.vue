@@ -7,6 +7,22 @@ function floorToFourPx(size: number) {
   return `${Math.max(4, Math.floor(size / 4) * 4)}px`
 }
 
+function getSoilImpactDepth(x: number) {
+  if (x < 25) {
+    if (x < 25 / 3) return 'clamp(96px, 15vh, 156px)'
+    if (x < 50 / 3) return 'clamp(72px, 10vh, 112px)'
+    return 'clamp(48px, 6vh, 76px)'
+  }
+
+  if (x > 75) {
+    if (x > 100 - 25 / 3) return 'clamp(96px, 15vh, 156px)'
+    if (x > 100 - 50 / 3) return 'clamp(72px, 10vh, 112px)'
+    return 'clamp(48px, 6vh, 76px)'
+  }
+
+  return 'clamp(24px, 4vh, 48px)'
+}
+
 function getKeywordParticleStyle(droplet: { seedX: number; seedY: number; letterFontSize: number }, index: number, count: number) {
   const center = (count - 1) / 2
   const side = index - center
@@ -53,6 +69,7 @@ function getSplashStyle(size: number, index: number) {
         '--stream-x': `${droplet.streamX}px`,
         '--stream-y': `${droplet.streamY}px`,
         '--impact-x': `${droplet.impactX}px`,
+        '--soil-impact-depth': getSoilImpactDepth(droplet.x),
         '--seed-x': `${droplet.seedX}px`,
         '--seed-y': `${droplet.seedY}px`,
         '--delay': `${droplet.delay}s`,
