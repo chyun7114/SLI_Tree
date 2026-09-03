@@ -282,14 +282,18 @@ function ascendToSky() {
 
 .growth-scene__sky-message {
   position: absolute;
-  left: 50%;
-  top: 50%;
+  inset: 0;
   z-index: 5;
-  width: min(1200px, calc(100vw - 40px));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  width: 100%;
+  padding: 20px;
   color: #16455d;
   text-align: center;
   text-shadow: 0 2px 20px rgba(255, 255, 255, 0.72);
-  transform: translate(-50%, -50%);
 }
 
 .growth-scene__sky-kicker {
@@ -452,7 +456,7 @@ function ascendToSky() {
 .sky-message-leave-to {
   opacity: 0;
   filter: blur(10px);
-  transform: translate(-50%, calc(-50% + 26px));
+  transform: translateY(26px);
 }
 
 @keyframes warm-arrival {
@@ -466,7 +470,7 @@ function ascendToSky() {
 
 @media (max-width: 760px) {
   .growth-scene__sky-message {
-    width: min(520px, calc(100vw - 32px));
+    padding: 16px;
   }
 
   .growth-scene__sky-kicker {
