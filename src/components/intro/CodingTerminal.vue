@@ -49,7 +49,7 @@ watch(
 
       <pre
         ref="codeScroller"
-        class="intro-scroll h-[46vh] min-h-80 overflow-y-auto px-4 py-5 text-left font-mono text-[12px] leading-6 text-slate-200 md:h-[430px] md:px-6 md:text-[13px]"
+        class="intro-scroll h-[46vh] min-h-80 overflow-y-auto px-4 py-5 text-left font-sans text-[12px] leading-6 text-slate-200 md:h-[430px] md:px-6 md:text-[13px]"
       ><code><template v-for="(line, lineIndex) in highlightedLines" :key="lineIndex"><span v-for="(token, tokenIndex) in line" :key="`${lineIndex}-${tokenIndex}`" :class="token.className">{{ token.text }}</span><br v-if="lineIndex < highlightedLines.length - 1" /></template></code><span v-if="!completed" class="ml-1 inline-block h-4 w-1 animate-pulse bg-teal-200 align-middle"></span></pre>
     </div>
 

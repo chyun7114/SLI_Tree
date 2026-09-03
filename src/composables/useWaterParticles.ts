@@ -52,7 +52,7 @@ export const AMBIENT_DROPLET_KEYWORDS = [
   '연대감',
 ] as const
 
-export function useWaterParticles(count = 24) {
+export function useWaterParticles(count = 10) {
   const seed = ref(Date.now())
 
   function createDroplet(id: number): AmbientDroplet {
@@ -76,7 +76,7 @@ export function useWaterParticles(count = 24) {
           : keywordLength <= 7
             ? 4.2
             : 3.5
-    const sizeOptions = [24, 26, 28, 30, 32, 36]
+    const sizeOptions = [36, 39, 42, 45, 48, 54]
     const size = sizeOptions[Math.floor(Math.random() * sizeOptions.length)]
     const pullPoints = [
       { x: -68, y: -58 },
@@ -103,8 +103,8 @@ export function useWaterParticles(count = 24) {
       impactX: -54 + Math.random() * 108,
       seedX: -16 + Math.random() * 32,
       seedY: 6 + Math.random() * 14,
-      delay: Math.random() * -9,
-      duration: 6.4 + Math.random() * 5.6,
+      delay: Math.random() * -18,
+      duration: 12.8 + Math.random() * 11.2,
       opacity: 0.38 + Math.random() * 0.34,
     }
   }

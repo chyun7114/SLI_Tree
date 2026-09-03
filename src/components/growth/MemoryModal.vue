@@ -2,24 +2,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue'
 import type { CSSProperties } from 'vue'
 import type { GrowthValue } from '../../types/growth'
-
-interface HeatmapTile {
-  index: number
-  photo: GrowthValue['photos'][number]
-  style: CSSProperties
-}
-
-interface HeatmapSource {
-  index: number
-  photo: GrowthValue['photos'][number]
-}
-
-interface HeatmapRect {
-  x: number
-  y: number
-  width: number
-  height: number
-}
+import { createHeatmapLayout } from '../../utils/heatmapLayout'
 
 const props = defineProps<{
   memory: GrowthValue
@@ -30,6 +13,11 @@ const emit = defineEmits<{
 }>()
 
 const modalRef = ref<HTMLElement | null>(null)
+const heatmapWidth = ref(1000)
+const heatmapHeight = ref(700)
+const photoRatios = ref<Record<string, number>>({})
+let resizeObserver: ResizeObserver | undefined
+let photoLoadVersion = 0
 const erroredPhotos = ref<Set<string>>(new Set())
 const selectedPhoto = ref<GrowthValue['photos'][number] | null>(null)
 const photoPreviewStyle = ref<CSSProperties>({})
@@ -45,7 +33,19 @@ const heatmapSources = computed(() => {
 
   return availablePhotos.length > 0 ? availablePhotos : props.memory.photos.map((photo, index) => ({ index, photo }))
 })
-const heatmapTiles = computed(() => createHeatmapTiles(heatmapSources.value))
+const heatmapTiles = computed(() => {
+  const sources = heatmapSources.value
+  const ratios = sources.map(({ photo }) => photoRatios.value[photo.id] ?? 1)
+  return createHeatmapLayout(ratios, heatmapWidth.value, heatmapHeight.value).map((rectangle) => ({
+    ...sources[rectangle.index]!,
+    style: {
+      left: `${rectangle.x}%`,
+      top: `${rectangle.y}%`,
+      width: `${rectangle.width}%`,
+      height: `${rectangle.height}%`,
+    } satisfies CSSProperties,
+  }))
+})
 
 function close() {
   emit('close')
@@ -96,82 +96,29 @@ function isPhotoErrored(id: string) {
   return erroredPhotos.value.has(id)
 }
 
-function heatmapWeight(index: number) {
-  const weights = [1.45, 0.92, 1.18, 1.72, 0.86, 1.32, 1.05, 1.56, 0.98, 1.24]
-  return weights[index % weights.length]
+const tileRatios = [1, 4 / 3, 16 / 9] as const
+
+function nearestTileRatio(width: number, height: number) {
+  const originalRatio = width / Math.max(height, 1)
+  return tileRatios.reduce((closest, ratio) =>
+    Math.abs(Math.log(originalRatio / ratio)) < Math.abs(Math.log(originalRatio / closest)) ? ratio : closest,
+  )
 }
 
-function createHeatmapTiles(sources: HeatmapSource[]) {
-  const weightedPhotos = sources.map((source, index) => ({
-    index: source.index,
-    photo: source.photo,
-    weight: heatmapWeight(index),
-  }))
-  const tiles: HeatmapTile[] = []
-
-  function split(items: typeof weightedPhotos, rect: HeatmapRect) {
-    if (items.length === 0) return
-
-    if (items.length === 1) {
-      const item = items[0]
-      tiles.push({
-        index: item.index,
-        photo: item.photo,
-        style: {
-          left: `${rect.x}%`,
-          top: `${rect.y}%`,
-          width: `${rect.width}%`,
-          height: `${rect.height}%`,
-        },
-      })
-      return
-    }
-
-    const totalWeight = items.reduce((sum, item) => sum + item.weight, 0)
-    const targetWeight = totalWeight / 2
-    let splitIndex = 1
-    let runningWeight = 0
-    let closestDistance = Number.POSITIVE_INFINITY
-
-    for (let index = 0; index < items.length - 1; index += 1) {
-      runningWeight += items[index].weight
-      const distance = Math.abs(targetWeight - runningWeight)
-      if (distance < closestDistance) {
-        closestDistance = distance
-        splitIndex = index + 1
-      }
-    }
-
-    const firstGroup = items.slice(0, splitIndex)
-    const secondGroup = items.slice(splitIndex)
-    const firstWeight = firstGroup.reduce((sum, item) => sum + item.weight, 0)
-    const ratio = firstWeight / totalWeight
-
-    if (rect.width >= rect.height) {
-      const firstWidth = rect.width * ratio
-      split(firstGroup, { ...rect, width: firstWidth })
-      split(secondGroup, {
-        x: rect.x + firstWidth,
-        y: rect.y,
-        width: rect.width - firstWidth,
-        height: rect.height,
-      })
-      return
-    }
-
-    const firstHeight = rect.height * ratio
-    split(firstGroup, { ...rect, height: firstHeight })
-    split(secondGroup, {
-      x: rect.x,
-      y: rect.y + firstHeight,
-      width: rect.width,
-      height: rect.height - firstHeight,
-    })
-  }
-
-  split(weightedPhotos, { x: 0, y: 0, width: 100, height: 100 })
-  return tiles
-}
+watch(
+  () => props.memory.photos,
+  async (photos) => {
+    const version = ++photoLoadVersion
+    const dimensions = await Promise.all(photos.map((photo) => new Promise<[string, number]>((resolve) => {
+      const image = new Image()
+      image.onload = () => resolve([photo.id, nearestTileRatio(image.naturalWidth, image.naturalHeight)])
+      image.onerror = () => resolve([photo.id, 1])
+      image.src = photo.src
+    })))
+    if (version === photoLoadVersion) photoRatios.value = Object.fromEntries(dimensions)
+  },
+  { immediate: true },
+)
 
 function handleKeydown(event: KeyboardEvent) {
   if (event.key === 'Escape') {
@@ -213,11 +160,23 @@ watch(
 
 onMounted(() => {
   document.addEventListener('keydown', handleKeydown)
+  if (modalRef.value) {
+    heatmapWidth.value = modalRef.value.clientWidth
+    heatmapHeight.value = modalRef.value.clientHeight
+    resizeObserver = new ResizeObserver(([entry]) => {
+      if (!entry) return
+      heatmapWidth.value = Math.max(1, entry.contentRect.width)
+      heatmapHeight.value = Math.max(1, entry.contentRect.height)
+    })
+    resizeObserver.observe(modalRef.value)
+  }
   modalRef.value?.focus()
 })
 
 onBeforeUnmount(() => {
   document.removeEventListener('keydown', handleKeydown)
+  resizeObserver?.disconnect()
+  photoLoadVersion++
 })
 </script>
 
@@ -343,6 +302,7 @@ onBeforeUnmount(() => {
 
 .memory-modal--heatmap {
   height: min(88svh, 760px);
+  border: 0;
   padding: 0;
 }
 
@@ -422,29 +382,34 @@ onBeforeUnmount(() => {
 
 .memory-modal__heatmap {
   position: relative;
+  width: 100%;
   height: 100%;
-  overflow: hidden;
+  overflow: clip;
 }
 
 .memory-modal__heat-tile {
   position: absolute;
+  min-width: 0;
   overflow: hidden;
   min-height: 0;
-  border: 1px solid rgba(255, 255, 255, 0.7);
-  border-radius: 6px;
+  border: 0;
+  border-radius: 0;
   padding: 0;
   background: rgba(255, 255, 255, 0.46);
   contain: paint;
   cursor: pointer;
-  transition:
-    filter 180ms ease,
-    transform 180ms ease;
+  transition: filter 180ms ease;
 }
 
 .memory-modal__heat-tile:hover {
   z-index: 1;
   filter: brightness(1.04) saturate(1.03);
-  transform: scale(1.006);
+}
+
+.memory-modal__heat-tile img,
+.memory-modal__heat-tile span {
+  position: absolute;
+  inset: 0;
 }
 
 .memory-modal__heat-tile img,
@@ -546,11 +511,12 @@ onBeforeUnmount(() => {
 
   .memory-modal--heatmap {
     height: 100svh;
+    min-height: 0;
+    max-height: 100svh;
     padding: 0;
   }
 
   .memory-modal__heatmap {
-    height: 100%;
     padding-right: 0;
   }
 

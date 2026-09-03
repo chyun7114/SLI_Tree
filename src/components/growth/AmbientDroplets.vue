@@ -2,7 +2,7 @@
 import { onBeforeUnmount, onMounted } from 'vue'
 import { useWaterParticles } from '../../composables/useWaterParticles'
 
-const { droplets, refresh } = useWaterParticles(5)
+const { droplets, refresh } = useWaterParticles(10)
 let timer: number | undefined
 
 function getKeywordParticleStyle(droplet: { seedX: number; seedY: number }, index: number, count: number) {
@@ -22,7 +22,7 @@ function getKeywordParticleStyle(droplet: { seedX: number; seedY: number }, inde
 }
 
 onMounted(() => {
-  timer = window.setInterval(refresh, 8800)
+  timer = window.setInterval(refresh, 17600)
 })
 
 onBeforeUnmount(() => {
@@ -83,12 +83,13 @@ onBeforeUnmount(() => {
 }
 
 .ambient-droplet {
+  --fall-distance: calc(100svh - var(--soil-height) - var(--y) - var(--size));
   position: absolute;
   left: var(--x);
   top: var(--y);
   width: var(--size);
   height: var(--size);
-  animation: ambient-path var(--duration) cubic-bezier(0.3, 0.02, 0.24, 1) var(--delay) infinite both;
+  animation: ambient-path var(--duration) ease-in-out var(--delay) infinite both;
   will-change: transform;
 }
 
@@ -178,22 +179,31 @@ onBeforeUnmount(() => {
 
 @keyframes ambient-path {
   0% {
-    transform: translate3d(0, -28px, 0) scale(0.32);
+    transform: translate3d(0, -28px, 0) rotate(-3deg) scale(0.32);
   }
   12% {
-    transform: translate3d(var(--drift-x), var(--drift-y), 0) scale(0.82);
+    transform: translate3d(var(--drift-x), 0, 0) rotate(4deg) scale(0.82);
+  }
+  28% {
+    transform: translate3d(calc(var(--attract-x) * 0.55 + 24px), calc(var(--fall-distance) * 0.18), 0) rotate(-5deg) scale(0.96);
   }
   44% {
-    transform: translate3d(var(--attract-x), var(--attract-y), 0) scale(1.06);
+    transform: translate3d(calc(var(--attract-x) * 0.55 - 24px), calc(var(--fall-distance) * 0.38), 0) rotate(5deg) scale(1.06);
+  }
+  58% {
+    transform: translate3d(calc(var(--stream-x) * 0.5 + 28px), calc(var(--fall-distance) * 0.58), 0) rotate(-4deg) scale(0.98);
   }
   70% {
-    transform: translate3d(var(--stream-x), var(--stream-y), 0) scale(0.86);
+    transform: translate3d(calc(var(--stream-x) * 0.5 - 24px), calc(var(--fall-distance) * 0.76), 0) rotate(4deg) scale(0.86);
+  }
+  80% {
+    transform: translate3d(calc(var(--impact-x) + 16px), calc(var(--fall-distance) * 0.9), 0) rotate(-2deg) scale(0.94);
   }
   88% {
-    transform: translate3d(var(--impact-x), calc(100svh - var(--soil-height) - var(--y) - var(--size)), 0) scale(0.94, 1.08);
+    transform: translate3d(var(--impact-x), var(--fall-distance), 0) rotate(0deg) scale(0.94, 1.08);
   }
   100% {
-    transform: translate3d(var(--impact-x), calc(100svh - var(--soil-height) - var(--y) - var(--size)), 0) scale(1);
+    transform: translate3d(var(--impact-x), var(--fall-distance), 0) scale(1);
   }
 }
 

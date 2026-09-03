@@ -93,16 +93,20 @@ function ascendToSky() {
       </section>
     </Transition>
 
-    <section class="growth-scene__values" aria-label="Core values" :aria-hidden="isEnteringForest || isForestView || isSkyView">
-      <ValueSphere
-        v-for="value in growthValues"
-        :key="value.id"
-        :value="value"
-        :state="valueStates[value.id]"
-        :disabled="isAnimating"
-        @select="selectValue"
-      />
-    </section>
+    <div class="growth-scene__values-viewport">
+      <section class="growth-scene__values" aria-label="Core values" :aria-hidden="isEnteringForest || isForestView || isSkyView">
+        <div v-for="value in growthValues" :key="value.id" class="growth-scene__value-region">
+          <div class="growth-scene__value-anchor">
+            <ValueSphere
+              :value="value"
+              :state="valueStates[value.id]"
+              :disabled="isAnimating"
+              @select="selectValue"
+            />
+          </div>
+        </div>
+      </section>
+    </div>
 
     <GrowingTree
       v-if="!isForestView"
@@ -370,50 +374,64 @@ function ascendToSky() {
   opacity: 1;
 }
 
-.growth-scene__values {
-  position: relative;
+.growth-scene__values-viewport {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 80svh;
   z-index: 5;
-  width: min(760px, calc(100vw - 36px));
-  height: clamp(330px, 46vh, 460px);
-  margin: clamp(125px, 23.75vh, 205px) auto 0;
-  transform-origin: 50% 48%;
-  animation: value-group-drift 18s ease-in-out infinite;
-  transition:
-    opacity 540ms ease,
-    transform 900ms cubic-bezier(0.16, 0.82, 0.2, 1),
-    filter 900ms ease;
+  pointer-events: none;
+}
+
+.growth-scene__values {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-rows: repeat(2, minmax(0, 1fr));
+  width: 100%;
+  height: 100%;
+  transition: opacity 540ms ease;
 }
 
 .growth-scene--entering-forest .growth-scene__values,
 .growth-scene--forest-view .growth-scene__values {
   opacity: 0;
-  transform: scale(1.22) translateY(8vh);
-  filter: blur(8px);
-  pointer-events: none;
+  visibility: hidden;
 }
 
-.growth-scene__values :deep(.value-sphere) {
+.growth-scene__value-region {
+  position: relative;
+  --anchor-x: 60%;
+  --anchor-y: 60%;
+  --sphere-offset-factor: 0;
+}
+
+.growth-scene__value-region:nth-child(even) {
+  --anchor-x: 40%;
+}
+
+.growth-scene__value-region:nth-child(n + 3) {
+  --anchor-y: 60%;
+}
+
+.growth-scene__value-region:nth-child(2) {
+  --anchor-x: 25.2%;
+  --anchor-y: 74.8%;
+}
+
+.growth-scene__value-region:nth-child(3) {
+  --anchor-x: 74.8%;
+  --anchor-y: 45.2%;
+}
+
+.growth-scene__value-anchor {
   position: absolute;
+  left: var(--anchor-x);
+  top: var(--anchor-y);
+  transform: translate(-50%, -50%);
+  line-height: 0;
 }
 
-.growth-scene__values :deep(.value-sphere:nth-child(1)) {
-  left: 19%;
-  top: 2%;
-}
-
-.growth-scene__values :deep(.value-sphere:nth-child(2)) {
-  right: 16%;
-  top: 10%;
-}
-
-.growth-scene__values :deep(.value-sphere:nth-child(3)) {
-  left: 9%;
-  bottom: 4%;
-}
-
-.growth-scene__values :deep(.value-sphere:nth-child(4)) {
-  right: 6%;
-  bottom: 16%;
+.growth-scene__value-anchor :deep(.value-sphere) {
+  pointer-events: auto;
 }
 
 .memory-modal-enter-active,
@@ -450,26 +468,7 @@ function ascendToSky() {
   }
 }
 
-@keyframes value-group-drift {
-  0%,
-  100% {
-    transform: translate3d(0, 0, 0) rotate(-1.8deg) scale(1);
-  }
-  36% {
-    transform: translate3d(10px, -6px, 0) rotate(2.4deg) scale(1.006);
-  }
-  70% {
-    transform: translate3d(-8px, 7px, 0) rotate(-2.2deg) scale(0.998);
-  }
-}
-
 @media (max-width: 760px) {
-  .growth-scene__values {
-    width: min(430px, calc(100vw - 24px));
-    height: clamp(300px, 44vh, 390px);
-    margin-top: clamp(104px, 19.5vh, 154px);
-  }
-
   .growth-scene__sky-message {
     width: min(520px, calc(100vw - 32px));
   }
@@ -486,25 +485,7 @@ function ascendToSky() {
     font-size: clamp(0.96rem, 4vw, 1.12rem);
   }
 
-  .growth-scene__values :deep(.value-sphere:nth-child(1)) {
-    left: 15%;
-    top: 1%;
-  }
 
-  .growth-scene__values :deep(.value-sphere:nth-child(2)) {
-    right: 9%;
-    top: 12%;
-  }
-
-  .growth-scene__values :deep(.value-sphere:nth-child(3)) {
-    left: 4%;
-    bottom: 5%;
-  }
-
-  .growth-scene__values :deep(.value-sphere:nth-child(4)) {
-    right: 2%;
-    bottom: 15%;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

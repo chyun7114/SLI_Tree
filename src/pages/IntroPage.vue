@@ -122,7 +122,7 @@ onBeforeUnmount(clearTimers)
       <Transition name="prompt-collapse">
         <section
           v-if="isPromptVisible"
-          class="mx-auto w-full max-w-6xl text-center transition-all duration-700 ease-out"
+          class="mx-auto w-full text-center transition-all duration-700 ease-out"
           :class="isPromptCompact ? 'pt-2 md:pt-5' : '-translate-y-4'"
         >
           <Transition name="fade-soft">

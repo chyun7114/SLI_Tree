@@ -31,13 +31,13 @@ const labelSize = computed(() => {
 <template>
   <button
     class="value-sphere"
-    :class="[`value-sphere--${state}`]"
+    :class="[`value-sphere--${state}`, `value-sphere--${value.id}`]"
     type="button"
     :disabled="disabled || state !== 'idle'"
     :aria-label="`${value.archiveLabel} 열기`"
     :style="{
-      '--offset-x': `${value.sphereOffset.x}px`,
-      '--offset-y': `${value.sphereOffset.y}px`,
+      '--offset-x': `calc(${value.sphereOffset.x}px * var(--sphere-offset-factor, 1))`,
+      '--offset-y': `calc(${value.sphereOffset.y}px * var(--sphere-offset-factor, 1))`,
       '--wobble-filter': filterUrl,
       '--label-size': labelSize,
     }"
@@ -81,8 +81,8 @@ const labelSize = computed(() => {
   --orbit-y-c: 6px;
   --orbit-rotate-c: -0.9deg;
   position: relative;
-  width: var(--sphere-size);
-  height: var(--sphere-size);
+  width: calc(var(--sphere-size) * 2.4);
+  height: calc(var(--sphere-size) * 2.4);
   border: 0;
   border-radius: 999px;
   padding: 0;
@@ -110,7 +110,7 @@ const labelSize = computed(() => {
   animation: droplet-float var(--float-duration) ease-in-out infinite;
 }
 
-.value-sphere:nth-child(1) {
+.value-sphere--droplet1 {
   --float-duration: 8.8s;
   --orbit-x-a: 15px;
   --orbit-y-a: -12px;
@@ -125,7 +125,7 @@ const labelSize = computed(() => {
   --orbit-rotate-c: -1deg;
 }
 
-.value-sphere:nth-child(2) {
+.value-sphere--droplet2 {
   --float-duration: 7.1s;
   --orbit-x-a: -13px;
   --orbit-y-a: -8px;
@@ -140,7 +140,7 @@ const labelSize = computed(() => {
   --orbit-rotate-c: 0.9deg;
 }
 
-.value-sphere:nth-child(3) {
+.value-sphere--droplet3 {
   --float-duration: 9.7s;
   --orbit-x-a: 18px;
   --orbit-y-a: 9px;
@@ -155,7 +155,7 @@ const labelSize = computed(() => {
   --orbit-rotate-c: -0.8deg;
 }
 
-.value-sphere:nth-child(4) {
+.value-sphere--droplet4 {
   --float-duration: 6.6s;
   --orbit-x-a: -16px;
   --orbit-y-a: 12px;
@@ -203,7 +203,7 @@ const labelSize = computed(() => {
   border-radius: 999px;
   color: rgba(255, 255, 255, 0.96);
   background: radial-gradient(ellipse, rgba(20, 113, 147, 0.34), rgba(20, 113, 147, 0.08) 62%, transparent 72%);
-  font-size: var(--label-size);
+  font-size: calc(var(--label-size) * 1.5);
   font-weight: 700;
   letter-spacing: 0;
   line-height: 1;
@@ -266,15 +266,15 @@ const labelSize = computed(() => {
     transform: translate(var(--offset-x), var(--offset-y)) translate3d(0, 0, 0) rotate(-0.7deg) scale(1);
   }
   28% {
-    transform: translate(var(--offset-x), var(--offset-y)) translate3d(var(--orbit-x-a), var(--orbit-y-a), 0)
+    transform: translate(var(--offset-x), var(--offset-y)) translate3d(calc(var(--orbit-x-a) * 1.5), calc(var(--orbit-y-a) * 1.5), 0)
       rotate(var(--orbit-rotate-a)) scale(var(--orbit-scale-a));
   }
   58% {
-    transform: translate(var(--offset-x), var(--offset-y)) translate3d(var(--orbit-x-b), var(--orbit-y-b), 0)
+    transform: translate(var(--offset-x), var(--offset-y)) translate3d(calc(var(--orbit-x-b) * 1.5), calc(var(--orbit-y-b) * 1.5), 0)
       rotate(var(--orbit-rotate-b)) scale(var(--orbit-scale-b));
   }
   82% {
-    transform: translate(var(--offset-x), var(--offset-y)) translate3d(var(--orbit-x-c), var(--orbit-y-c), 0)
+    transform: translate(var(--offset-x), var(--offset-y)) translate3d(calc(var(--orbit-x-c) * 1.5), calc(var(--orbit-y-c) * 1.5), 0)
       rotate(var(--orbit-rotate-c)) scale(1.006);
   }
 }

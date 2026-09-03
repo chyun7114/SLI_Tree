@@ -1,7 +1,67 @@
 @import 'tailwindcss';
 
+@font-face {
+  font-family: 'Samsung Long Gothic';
+  src: url('/fonts/samsung-long-gothic/samsung-long-gothic-ultralight.otf') format('opentype');
+  font-weight: 200;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Samsung Long Gothic';
+  src: url('/fonts/samsung-long-gothic/samsung-long-gothic-light.otf') format('opentype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Samsung Long Gothic';
+  src: url('/fonts/samsung-long-gothic/samsung-long-gothic-regular.otf') format('opentype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Samsung Long Gothic';
+  src: url('/fonts/samsung-long-gothic/samsung-long-gothic-medium.otf') format('opentype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Samsung Long Gothic';
+  src: url('/fonts/samsung-long-gothic/samsung-long-gothic-bold.otf') format('opentype');
+  font-weight: 600 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Samsung Long Gothic';
+  src: url('/fonts/samsung-long-gothic/samsung-long-gothic-extrabold.otf') format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Samsung Long Gothic';
+  src: url('/fonts/samsung-long-gothic/samsung-long-gothic-heavy.otf') format('opentype');
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+@theme {
+  --font-sans: 'Samsung Long Gothic', system-ui, sans-serif;
+}
+
 :root {
-  font-family: system-ui, 'Segoe UI', Roboto, sans-serif;
+  font-family: var(--font-sans);
   font-synthesis: none;
   line-height: 1.45;
   text-rendering: optimizeLegibility;
